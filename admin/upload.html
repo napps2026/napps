@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin — Upload Asset</title>
+  <style>body{font-family:Arial,Helvetica,sans-serif;padding:20px;background:#f6f6f6} .card{max-width:720px;margin:40px auto;background:#fff;padding:20px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.08)} input[type=file]{display:block;margin-bottom:12px} button{padding:10px 14px;background:#004d2c;color:#fff;border:0;border-radius:8px;cursor:pointer} pre{background:#f0f0f0;padding:12px;border-radius:6px;overflow:auto}</style>
+</head>
+<body>
+  <div class="card">
+    <h2>Admin — Upload Image to S3</h2>
+    <p id="intro">You must authenticate with the admin key to upload assets.</p>
+
+    <div id="loginBox" style="margin-bottom:16px">
+      <input id="adminkey" type="password" placeholder="Enter admin key" style="width:100%;padding:8px;margin-bottom:8px;border-radius:6px;border:1px solid #ddd">
+      <div style="display:flex;gap:8px">
+        <button id="loginBtn">Unlock Uploads</button>
+        <button id="logoutBtn" style="background:#888;display:none">Logout</button>
+      </div>
+      <div id="loginMsg" style="margin-top:10px;color:#c00"></div>
+    </div>
+
+    <div id="uploadUI" style="display:none">
+      <p>Choose a file and upload to your configured S3 bucket via the serverless function.</p>
+      <input type="file" id="file" accept="image/*">
+      <input type="text" id="fname" placeholder="Optional filename (without extension)" style="width:100%;padding:8px;margin-bottom:12px;border-radius:6px;border:1px solid #ddd">
+      <div style="display:flex;gap:10px">
+        <button id="btn">Upload</button>
+        <button id="clear" style="background:#888">Clear</button>
+      </div>
+      <div id="status" style="margin-top:14px"></div>
+      <h4 style="margin-top:18px">Result</h4>
+      <pre id="result">No uploads yet.</pre>
+    </div>
+  </div>
+
+  <script>
+    const f = document.getElementById('file');
+    const btn = document.getElementById('btn');
+    const res = document.getElementById('result');
+    const status = document.getElementById('status');
+    const fname = document.getElementById('fname');
+
+    function toBase64(file){
+      return new Promise((resolve,reject)=>{
+        const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file);
+      });
+    }
+
+    // Login / auth handling
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginMsg = document.getElementById('loginMsg');
+
+    function setAuthenticated(key) {
+      sessionStorage.setItem('adminKey', key);
+      document.getElementById('uploadUI').style.display = 'block';
+      document.getElementById('loginBox').style.display = 'none';
+      logoutBtn.style.display = 'inline-block';
+    }
+
+    function clearAuth() {
+      sessionStorage.removeItem('adminKey');
+      document.getElementById('uploadUI').style.display = 'none';
+      document.getElementById('loginBox').style.display = 'block';
+      logoutBtn.style.display = 'none';
+    }
+
+    // Restore session
+    const existingKey = sessionStorage.getItem('adminKey');
+    if (existingKey) setAuthenticated(existingKey);
+
+    loginBtn.addEventListener('click', async () => {
+      const key = document.getElementById('adminkey').value;
+      if (!key) return loginMsg.innerText = 'Enter admin key';
+      loginBtn.disabled = true; loginMsg.innerText = 'Checking...';
+      try {
+        const r = await fetch('/.netlify/functions/admin-auth', { method: 'GET', headers: { 'Authorization': `Bearer ${key}` } });
+        if (r.ok) {
+          setAuthenticated(key);
+          loginMsg.innerText = '';
+        } else {
+          const j = await r.json(); loginMsg.innerText = j.error || 'Unauthorized';
+        }
+      } catch (e) {
+        loginMsg.innerText = 'Auth check failed';
+      } finally { loginBtn.disabled = false; }
+    });
+
+    logoutBtn.addEventListener('click', () => { clearAuth(); });
+
+    // Upload handler (requires adminKey in header)
+    btn.addEventListener('click', async ()=>{
+      const adminKey = sessionStorage.getItem('adminKey');
+      if(!adminKey) return alert('Not authenticated');
+      if(!f.files[0]) return alert('Select a file');
+      btn.disabled = true; status.innerText = 'Uploading...';
+      try{
+        const dataUrl = await toBase64(f.files[0]);
+        const payload = { fileName: fname.value || f.files[0].name.split('.').slice(0,-1).join('.'), data: dataUrl };
+        const r = await fetch('/.netlify/functions/upload-image', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminKey}` }, body: JSON.stringify(payload) });
+        const j = await r.json();
+        res.innerText = JSON.stringify(j, null, 2);
+      }catch(e){
+        res.innerText = 'Error: '+e.message;
+      }finally{ btn.disabled=false; status.innerText=''; }
+    });
+
+    document.getElementById('clear').addEventListener('click', ()=>{ f.value=''; fname.value=''; res.innerText='No uploads yet.'; });
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Environment variables
+# Set DATABASE_URL in Netlify dashboard (Site settings > Environment variables)
+# Do NOT commit secrets to this file; use the Netlify dashboard for sensitive values like DATABASE_URL

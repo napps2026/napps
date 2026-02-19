@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAPPS Ogun | Teacher Registry</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root { 
+            --primary: #051a13; 
+            --accent: #c5a028; 
+            --accent-light: #e6c860;
+            --bg: #f4f1ea;
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.85);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body { 
+            background: var(--bg); 
+            font-family: 'Montserrat', sans-serif; 
+            color: var(--primary); 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 5% 10%, rgba(197, 160, 40, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 95% 90%, rgba(5, 26, 19, 0.05) 0%, transparent 20%);
+        }
+
+        /* FIXED STICKY HOME BUTTON */
+        .fixed-nav {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            padding: 20px;
+            z-index: 2000;
+            pointer-events: none;
+        }
+        .back-home {
+            pointer-events: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: var(--primary);
+            color: var(--accent);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .back-home:hover { transform: scale(1.05); background: var(--accent); color: var(--primary); }
+
+        /* PROGRESS TRACKER */
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0; width: 100%; height: 2px;
+            background: #ddd; transform: translateY(-50%);
+            z-index: 1;
+        }
+        .step {
+            width: 30px; height: 30px; background: var(--white);
+            border: 2px solid #ddd; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2; font-weight: 700; font-size: 0.7rem;
+            transition: 0.4s; color: #aaa;
+        }
+        .step.active { border-color: var(--accent); background: var(--accent); color: var(--primary); box-shadow: 0 0 15px rgba(197, 160, 40, 0.3); }
+        .step.done { border-color: var(--primary); background: var(--primary); color: var(--accent); }
+
+        /* MAIN CONTAINER */
+        .reg-container { 
+            max-width: 500px; width: 92%; 
+            background: var(--glass); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 40px; 
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 30px 60px rgba(5, 26, 19, 0.1);
+            margin-top: 50px;
+        }
+
+        .phase { display: none; }
+        .phase.active { display: block; animation: slideUp 0.6s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { font-family: 'Cormorant Garamond'; font-size: 2.2rem; text-align: center; color: var(--primary); margin-bottom: 10px; }
+        .subtitle { text-align: center; font-size: 0.8rem; color: #777; margin-bottom: 30px; }
+
+        /* FORM ELEMENTS */
+        .field-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 8px; margin-left: 5px;}
+        
+        .input-box {
+            background: var(--white);
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 12px 15px;
+            display: flex; align-items: center;
+            transition: 0.3s;
+        }
+        .input-box:focus-within { border-color: var(--accent); box-shadow: 0 5px 15px rgba(197, 160, 40, 0.08); }
+        .input-box i { color: var(--accent); margin-right: 12px; font-size: 0.9rem; width: 20px; text-align: center; }
+        .input-box input, .input-box select, .input-box textarea { border: none; outline: none; width: 100%; font-family: 'Montserrat'; font-size: 0.9rem; background: transparent; }
+
+        /* UPLOAD & PREVIEW */
+        .upload-area {
+            border: 2px dashed #ccc; border-radius: 20px;
+            padding: 25px; text-align: center; cursor: pointer;
+            transition: 0.3s; background: rgba(255,255,255,0.5);
+        }
+        .upload-area:hover { border-color: var(--accent); background: var(--white); }
+        
+        #preview-box { 
+            width: 100px; height: 100px; margin: 0 auto 15px; 
+            border-radius: 50%; border: 3px solid var(--accent);
+            overflow: hidden; display: none;
+        }
+        #preview-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* LIQUID BUTTON */
+        .btn-main {
+            width: 100%; padding: 18px; border: none; border-radius: 15px;
+            background: var(--primary); color: var(--accent);
+            font-weight: 800; letter-spacing: 2px; cursor: pointer;
+            transition: 0.3s; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        
+        .wave { 
+            position: absolute; top: 100%; left: -50%; width: 200%; height: 200%; 
+            background: var(--accent); border-radius: 38%; z-index: 1; transition: top 2s ease; 
+        }
+        .btn-main.syncing .wave { top: -20%; animation: rotateWave 4s linear infinite; }
+        .btn-main.syncing span { color: var(--primary); position: relative; z-index: 2; }
+
+        @keyframes rotateWave { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        @media(max-width: 480px) {
+            .reg-container { padding: 30px 20px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="fixed-nav">
+        <a href="index.html" class="back-home">
+            <i class="fas fa-arrow-left"></i> BACK TO HOME
+        </a>
+    </div>
+
+    <div class="reg-container">
+        <div class="progress-bar">
+            <div class="step active" id="step1">1</div>
+            <div class="step" id="step2">2</div>
+            <div class="step" id="step3"><i class="fas fa-check"></i></div>
+        </div>
+
+        <div class="phase active" id="phase1">
+            <h2>Teacher Registry</h2>
+            <p class="subtitle">Personal details & contact information</p>
+            
+            <div class="field-group">
+                <label>Full Legal Name</label>
+                <div class="input-box">
+                    <i class="fas fa-user-tie"></i>
+                    <input type="text" id="name" placeholder="e.g. Adebayo Samuel">
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label>Email Address</label>
+                <div class="input-box">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="samuel@example.com">
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label>Phone Number (WhatsApp)</label>
+                <div class="input-box">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="phone" placeholder="08012345678">
+                </div>
+            </div>
+
+            <button class="btn-main" onclick="nextPhase(2)">
+                CONTINUE <i class="fas fa-chevron-right" style="margin-left:10px"></i>
+            </button>
+        </div>
+
+        <div class="phase" id="phase2">
+            <h2>Professional</h2>
+            <p class="subtitle">Your teaching specialty & media</p>
+            
+            <div class="field-group">
+                <label>Primary Subject</label>
+                <div class="input-box">
+                    <i class="fas fa-book"></i>
+                    <select id="subject">
+                        <option value="" disabled selected>Select Subject</option>
+                        <option>Mathematics</option>
+                        <option>English Language</option>
+                        <option>Physics / Chemistry</option>
+                        <option>ICT / Coding</option>
+                        <option>Primary / Montessori</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label>About your Experience</label>
+                <div class="input-box">
+                    <textarea id="about" rows="2" placeholder="Briefly describe your teaching style..."></textarea>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label>Passport Photo</label>
+                <div class="upload-area" onclick="document.getElementById('photo').click()">
+                    <div id="preview-box"><img id="preview-img" src=""></div>
+                    <i class="fas fa-camera"></i>
+                    <p id="fileName" style="font-size: 0.7rem; font-weight: 600;">Tap to upload photo</p>
+                    <input type="file" id="photo" accept="image/*" style="display:none">
+                </div>
+            </div>
+
+            <button class="btn-main" id="syncBtn" onclick="handleSync()">
+                <span>SYNC TO REGISTRY</span>
+                <div class="wave"></div>
+            </button>
+        </div>
+
+        <div class="phase" id="phase3" style="text-align:center;">
+            <div style="font-size: 4rem; color: var(--accent); margin-bottom: 20px;"><i class="fas fa-id-badge"></i></div>
+            <h2>Registry Updated</h2>
+            <p style="color: #666; line-height: 1.6; font-size: 0.9rem;">
+                Your professional profile has been added to the NAPPS faculty pool. Schools can now match with your profile.
+            </p>
+            <a href="index.html" class="btn-main" style="display:block; margin-top: 30px; text-decoration: none;">
+                DONE
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Navigation
+        function nextPhase(p) {
+            if(p === 2) {
+                if(!document.getElementById('name').value || !document.getElementById('phone').value) return alert("Please fill basic details");
+                document.getElementById('phase1').classList.remove('active');
+                document.getElementById('phase2').classList.add('active');
+                document.getElementById('step1').classList.add('done');
+                document.getElementById('step2').classList.add('active');
+            }
+        }
+
+        // Live Photo Preview
+        document.getElementById('photo').onchange = function(e) {
+            const file = e.target.files[0];
+            document.getElementById('fileName').innerText = file.name;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('preview-img').src = event.target.result;
+                document.getElementById('preview-box').style.display = 'block';
+                document.querySelector('.upload-area i').style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        };
+
+        // Sync Logic
+        async function handleSync() {
+            const photo = document.getElementById('photo').files[0];
+            if(!photo || !document.getElementById('subject').value) return alert("Please upload photo and select subject");
+
+            const btn = document.getElementById('syncBtn');
+            btn.classList.add('syncing');
+            btn.querySelector('span').innerText = "SYNCHRONIZING...";
+
+            const photoBase = await toBase64(photo);
+
+            const payload = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                qualification: document.getElementById('subject').value,
+                bio: document.getElementById('about').value
+            };
+
+            try {
+                const res = await fetch('/.netlify/functions/register-teacher', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const json = await res.json();
+                if(res.ok && json.success) {
+                    setTimeout(() => {
+                        document.getElementById('phase2').classList.remove('active');
+                        document.getElementById('phase3').classList.add('active');
+                        document.getElementById('step2').classList.add('done');
+                        document.getElementById('step3').classList.add('active');
+                    }, 800);
+                } else {
+                    throw new Error(json.error || 'Registration failed');
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Connection error. Please try again.");
+                btn.classList.remove('syncing');
+                btn.querySelector('span').innerText = "SYNC TO REGISTRY";
+            }
+        }
+
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    </script>
+</body>
+</html>

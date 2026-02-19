@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAPPS Unified Exam | CBT Engine</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root { 
+            --primary: #051a13; 
+            --accent: #c5a028; 
+            --bg: #f0f2f5;
+            --white: #ffffff;
+            --danger: #be123c;
+            --success: #15803d;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: var(--bg); font-family: 'Montserrat', sans-serif; color: var(--primary); height: 100vh; overflow: hidden; }
+
+        /* --- TOP NAVIGATION --- */
+        header {
+            height: 70px; background: var(--primary); color: white;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 30px; border-bottom: 4px solid var(--accent);
+        }
+        .school-brand { font-family: 'Cormorant Garamond'; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .exam-info { text-align: right; }
+        .exam-info h4 { font-size: 0.9rem; letter-spacing: 1px; }
+        .exam-info small { color: var(--accent); font-size: 0.7rem; font-weight: 700; }
+
+        /* --- MAIN LAYOUT --- */
+        .wrapper { display: grid; grid-template-columns: 1fr 320px; height: calc(100vh - 70px); }
+
+        /* --- QUESTION AREA --- */
+        .main-content { padding: 40px 6%; overflow-y: auto; background: white; }
+        
+        .progress-container { width: 100%; height: 6px; background: #eee; border-radius: 10px; margin-bottom: 40px; overflow: hidden; }
+        #progressBar { width: 10%; height: 100%; background: var(--accent); transition: 0.4s; }
+
+        .question-box h2 { font-size: 1.4rem; font-weight: 600; line-height: 1.6; margin-bottom: 30px; color: #333; }
+        .options-grid { display: flex; flex-direction: column; gap: 15px; }
+
+        .option {
+            padding: 20px 25px; border: 2px solid #eee; border-radius: 15px;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px;
+            font-weight: 500; position: relative;
+        }
+        .option:hover { border-color: var(--accent); background: #fffcf5; }
+        .option.selected { border-color: var(--primary); background: #f0fdf4; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .option .circle { width: 24px; height: 24px; border: 2px solid #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .option.selected .circle { border-color: var(--primary); background: var(--primary); }
+        .option.selected .circle::after { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+
+        /* --- SIDEBAR --- */
+        aside.sidebar { background: var(--bg); border-left: 1px solid #ddd; padding: 30px; display: flex; flex-direction: column; gap: 30px; }
+        
+        /* Timer */
+        .timer-card { background: var(--primary); color: white; padding: 20px; border-radius: 20px; text-align: center; }
+        .timer-card small { font-size: 0.6rem; text-transform: uppercase; color: var(--accent); letter-spacing: 2px; }
+        .timer-card h3 { font-size: 2rem; font-family: 'monospace'; margin-top: 5px; }
+
+        /* Question Grid */
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .nav-btn { 
+            width: 100%; aspect-ratio: 1; border: 1px solid #ccc; background: white; 
+            border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.2s;
+        }
+        .nav-btn.active { background: var(--primary); color: var(--accent); border-color: var(--primary); }
+        .nav-btn.answered { background: var(--accent); color: var(--primary); border-color: var(--accent); }
+
+        /* Footer Buttons */
+        .action-btns { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+        .btn { padding: 15px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; text-transform: uppercase; transition: 0.3s; }
+        .btn-next { background: var(--primary); color: var(--accent); }
+        .btn-prev { background: #ddd; color: #666; }
+        .btn-submit { background: var(--danger); color: white; margin-top: 10px; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        @media (max-width: 900px) {
+            .wrapper { grid-template-columns: 1fr; overflow-y: auto; }
+            aside.sidebar { border-left: none; border-top: 1px solid #ddd; }
+        }
+    </style>
+</head>
+<body>
+    <div style="position:fixed;top:18px;left:18px;z-index:3000">
+        <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;background:#051a13;color:#c5a028;border-radius:999px;text-decoration:none;font-weight:700">&larr; Home</a>
+    </div>
+
+    <header>
+        <div class="school-brand">
+            <i class="fas fa-graduation-cap"></i>
+            <span>NAPPS <b>UNIFIED EXAM</b></span>
+        </div>
+        <div class="exam-info">
+            <h4 id="subjectDisplay">MATHEMATICS (SS2)</h4>
+            <small>CANDIDATE: SAMUEL ADEBAYO</small>
+        </div>
+    </header>
+
+    <div class="wrapper">
+        <main class="main-content">
+            <div class="progress-container">
+                <div id="progressBar"></div>
+            </div>
+
+            <div class="question-box">
+                <p style="color: var(--accent); font-weight: 800; font-size: 0.75rem; margin-bottom: 10px;" id="qNumber">QUESTION 1 OF 40</p>
+                <h2 id="questionText">The diagram above shows a triangle with sides a, b, and c. If angle C is 90 degrees, which of the following expresses the Pythagorean theorem?</h2>
+                
+                <div class="options-grid" id="optionsGrid">
+                    </div>
+            </div>
+
+            <div style="margin-top: 50px; display: flex; gap: 15px;">
+                <button class="btn btn-prev" onclick="prevQuestion()"><i class="fas fa-arrow-left"></i> Previous</button>
+                <button class="btn btn-next" onclick="nextQuestion()" style="flex-grow: 1;">Next Question <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <div class="timer-card">
+                <small>Time Remaining</small>
+                <h3 id="timer">59:59</h3>
+            </div>
+
+            <div>
+                <p style="font-size: 0.7rem; font-weight: 700; color: #888; margin-bottom: 15px; text-transform: uppercase;">Question Map</p>
+                <div class="nav-grid" id="navGrid">
+                    </div>
+            </div>
+
+            <div class="action-card" style="background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee;">
+                <p style="font-size: 0.7rem; color: #666;"><i class="fas fa-info-circle"></i> Changes are saved automatically in real-time.</p>
+            </div>
+
+            <div class="action-btns">
+                <button class="btn btn-submit" onclick="finishExam()">FINISH & SUBMIT</button>
+            </div>
+        </aside>
+    </div>
+
+<script>
+    // Configuration
+    const totalQuestions = 40;
+    let currentQ = 1;
+    let answers = {}; // Store student answers
+    let timeLeft = 3600; // 60 minutes in seconds
+
+    // Initialize Page
+    function init() {
+        renderNavGrid();
+        updateDisplay();
+        startTimer();
+    }
+
+    // Render the 1-40 Grid
+    function renderNavGrid() {
+        const grid = document.getElementById('navGrid');
+        for (let i = 1; i <= totalQuestions; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'nav-btn';
+            btn.id = `nav-${i}`;
+            btn.innerText = i;
+            btn.onclick = () => jumpTo(i);
+            grid.appendChild(btn);
+        }
+    }
+
+    function updateDisplay() {
+        // UI Updates
+        document.getElementById('qNumber').innerText = `QUESTION ${currentQ} OF ${totalQuestions}`;
+        document.getElementById('progressBar').style.width = `${(currentQ / totalQuestions) * 100}%`;
+        
+        // Active Navigation Highlight
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`nav-${currentQ}`).classList.add('active');
+
+        // Dynamic Options (Demo)
+        const options = ['a² + b² = c²', 'a + b = c', 'sin(A) = a/c', 'Area = 1/2 bh'];
+        const grid = document.getElementById('optionsGrid');
+        grid.innerHTML = options.map((opt, idx) => `
+            <div class="option ${answers[currentQ] === idx ? 'selected' : ''}" onclick="selectOption(${idx})">
+                <div class="circle"></div>
+                <span>${opt}</span>
+            </div>
+        `).join('');
+    }
+
+    function selectOption(idx) {
+        answers[currentQ] = idx;
+        document.getElementById(`nav-${currentQ}`).classList.add('answered');
+        updateDisplay();
+    }
+
+    function nextQuestion() {
+        if (currentQ < totalQuestions) {
+            currentQ++;
+            updateDisplay();
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQ > 1) {
+            currentQ--;
+            updateDisplay();
+        }
+    }
+
+    function jumpTo(q) {
+        currentQ = q;
+        updateDisplay();
+    }
+
+    function startTimer() {
+        const timerEl = document.getElementById('timer');
+        const interval = setInterval(() => {
+            timeLeft--;
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 300) timerEl.parentElement.style.background = 'var(--danger)';
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                finishExam();
+            }
+        }, 1000);
+    }
+
+    function finishExam() {
+        const confirmed = confirm("Are you sure you want to end your examination? You cannot go back.");
+        if (confirmed) {
+            alert("Examination Submitted. Your result will be sent to your school.");
+            window.location.href = "index.html";
+        }
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>

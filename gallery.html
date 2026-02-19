@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery — NAPPS Ogun</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Minimal page styles copied from index for consistency */
+        body{font-family:'Montserrat',sans-serif;background:var(--off-white,#f8f9fa);color:#1a1a1a;padding-bottom:70px}
+        header{position:fixed;top:0;width:100%;z-index:1000;background:rgba(255,255,255,0.92);backdrop-filter:blur(15px);padding:12px 5%;display:flex;justify-content:space-between;align-items:center}
+        .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+        .brand img{height:45px}
+        .hero{padding:120px 20px 40px;text-align:center}
+        .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;max-width:1200px;margin:20px auto}
+        .gallery-item{background:white;border-radius:8px;overflow:hidden;border:1px solid #eee}
+        .gallery-item img{width:100%;height:180px;object-fit:cover}
+        .gallery-item .meta{padding:12px}
+        footer{background:#021a0f;color:rgba(255,255,255,0.6);padding:40px 5%;text-align:center;margin-top:40px}
+    </style>
+</head>
+<body>
+    <div class="fixed-nav" style="position:fixed;top:18px;left:18px;z-index:3000">
+        <a href="index.html" class="back-home" style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--primary,#051a13);color:var(--accent,#c5a028);border-radius:999px;text-decoration:none;font-weight:700">&larr; Home</a>
+    </div>
+    <header>
+        <a href="index.html" class="brand">
+            <img src="https://via.placeholder.com/100x100/004d2c/d4af37?text=N" alt="NAPPS Logo">
+            <div>
+                <h1 style="font-family:'Cormorant Garamond';margin:0;color:#004d2c">NAPPS</h1>
+                <span style="font-size:0.6rem;color:#d4af37;letter-spacing:1px">OGUN STATE CHAPTER</span>
+            </div>
+        </a>
+        <nav style="display:flex;gap:18px;align-items:center">
+            <a href="index.html">Home</a>
+            <a href="gallery.html">Gallery</a>
+            <a href="unified-examination.html">Unified Exams</a>
+            <a href="teacher-reg.html">Teachers</a>
+            <a href="register.html" style="padding:8px 14px;background:#004d2c;color:white;border-radius:40px;text-decoration:none">JOIN NAPPS</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h2 style="color:#d4af37;letter-spacing:4px;text-transform:uppercase">Gallery</h2>
+            <h1 style="font-family:'Cormorant Garamond'">Moments & Events</h1>
+            <p style="max-width:800px;margin:10px auto;color:#666">Browse photos from recent NAPPS events and member schools.</p>
+        </section>
+
+        <section style="max-width:1200px;margin:20px auto;padding:0 20px">
+            <div id="galleryGrid" class="gallery-grid">
+                <p style="text-align:center;width:100%">Loading gallery...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div>
+            <h2 style="font-family:'Cormorant Garamond';margin:0">NAPPS OGUN</h2>
+            <p style="opacity:0.6">The National Association of Proprietors of Private Schools.</p>
+        </div>
+    </footer>
+
+    <script>
+        async function loadGallery(){
+            try{
+                const res = await fetch('/.netlify/functions/gallery');
+                if(!res.ok) throw new Error('Failed to load');
+                const images = await res.json();
+                const grid = document.getElementById('galleryGrid');
+                if(!images || images.length===0){
+                    grid.innerHTML = '<p style="text-align:center;width:100%;color:#666">No images yet.</p>';
+                    return;
+                }
+                grid.innerHTML = images.map(img => `\n                    <div class="gallery-item">\n                        <img src="${img.url || 'https://via.placeholder.com/400x180/004d2c/d4af37?text=Photo'}" alt="${img.title || ''}" onerror="this.src='https://via.placeholder.com/400x180/004d2c/d4af37?text=Photo'">\n                        <div class="meta">\n                            <strong>${img.title || ''}</strong>\n                            <p style="margin:6px 0 0;color:#666;font-size:0.9rem">${img.caption || ''}</p>\n                        </div>\n                    </div>\n                `).join('');
+            }catch(e){
+                console.error(e);
+                document.getElementById('galleryGrid').innerHTML = '<p style="text-align:center;width:100%;color:#d32f2f">Failed to load gallery.</p>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadGallery);
+    </script>
+</body>
+</html>
