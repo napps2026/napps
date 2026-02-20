@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAPPS Ogun Admin | Central Control</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --napps-green: #004d2c; 
+            --gold: #d4af37; 
+            --danger: #d32f2f;
+            --bg: #f0f2f5;
+        }
+
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        
+        /* --- AUTH OVERLAY --- */
+        #authOverlay {
+            position: fixed; inset: 0; background: var(--napps-green);
+            display: flex; align-items: center; justify-content: center; z-index: 10000;
+        }
+        .login-card { 
+            background: white; padding: 40px; border-radius: 15px; text-align: center; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3); width: 90%; max-width: 400px;
+        }
+
+        /* --- DASHBOARD LAYOUT --- */
+        .sidebar { width: 250px; background: white; height: 100vh; position: fixed; border-right: 1px solid #ddd; padding: 30px 0; }
+        .main-content { margin-left: 250px; padding: 40px; }
+        
+        .nav-item {
+            padding: 15px 30px; cursor: pointer; display: flex; align-items: center; gap: 15px;
+            font-weight: 600; color: #666; transition: 0.3s;
+        }
+        .nav-item:hover { background: #f8f9fa; color: var(--napps-green); }
+        .nav-item.active { background: var(--napps-green); color: white; }
+
+        /* --- TABLES & CARDS --- */
+        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { text-align: left; padding: 15px; background: #f8f9fa; color: #555; font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.8rem; }
+        .btn-verify { background: #e8f5e9; color: #2e7d32; }
+        .btn-delete { background: #ffebee; color: #c62828; }
+        .btn-verify:hover { background: #2e7d32; color: white; }
+        .btn-delete:hover { background: #c62828; color: white; }
+
+        .status-badge { 
+            padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; 
+            text-transform: uppercase;
+        }
+        .status-verified { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+
+        @media (max-width: 900px) {
+            .sidebar { width: 70px; }
+            .sidebar span { display: none; }
+            .main-content { margin-left: 70px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="authOverlay">
+        <div class="login-card">
+            <h2 style="color: var(--napps-green);">NAPPS OGUN</h2>
+            <p>Administrative Gateway</p><br>
+            <input type="password" id="adminKeyInput" placeholder="Enter Secret Key" 
+                   style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;">
+            <button onclick="authenticate()" class="btn" style="background:var(--gold); color:var(--napps-green); width:100%; padding:15px;">UNLOCK PORTAL</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div style="padding: 0 30px 30px; color: var(--napps-green); font-weight: 800;">ADMIN PANEL</div>
+        <div class="nav-item active" onclick="switchTab('schools', this)"><i class="fas fa-school"></i> <span>Schools</span></div>
+        <div class="nav-item" onclick="switchTab('teachers', this)"><i class="fas fa-chalkboard-teacher"></i> <span>Teachers</span></div>
+        <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></div>
+    </div>
+
+    <div class="main-content">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 id="viewTitle" style="color: var(--napps-green);">Verified Institutions</h2>
+                <button onclick="fetchData()" class="btn" style="background:#f0f0f0;"><i class="fas fa-sync"></i> Refresh</button>
+            </div>
+            
+            <div id="tableContainer">
+                <table id="adminTable">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ADMIN_TOKEN = "";
+        let currentTab = "schools";
+
+        function authenticate() {
+            const key = document.getElementById('adminKeyInput').value;
+            if (key) {
+                ADMIN_TOKEN = key;
+                document.getElementById('authOverlay').style.display = 'none';
+                fetchData();
+            }
+        }
+
+        function switchTab(tab, el) {
+            currentTab = tab;
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('viewTitle').innerText = tab.charAt(0).toUpperCase() + tab.slice(1);
+            fetchData();
+        }
+
+        async function fetchData() {
+            const body = document.getElementById('tableBody');
+            body.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px;">Loading database records...</td></tr>';
+            
+            try {
+                const response = await fetch(`/.netlify/functions/api?type=${currentTab}`);
+                const data = await response.json();
+                renderTable(data);
+            } catch (err) {
+                body.innerHTML = '<tr><td colspan="4" style="color:red; text-align:center;">Failed to connect to API.</td></tr>';
+            }
+        }
+
+        function renderTable(data) {
+            const head = document.getElementById('tableHead');
+            const body = document.getElementById('tableBody');
+
+            if (currentTab === 'schools') {
+                head.innerHTML = `<tr><th>School</th><th>Location</th><th>Status</th><th>Actions</th></tr>`;
+                body.innerHTML = data.map(s => `
+                    <tr>
+                        <td><b>${s.name}</b><br><small>${s.phone || ''}</small></td>
+                        <td>${s.location}</td>
+                        <td><span class="status-badge status-${s.status}">${s.status}</span></td>
+                        <td>
+                            ${s.status !== 'verified' ? `<button onclick="postAction('verify', ${s.id})" class="btn btn-verify">Verify</button>` : ''}
+                            <button onclick="postAction('delete', ${s.id})" class="btn btn-delete"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                head.innerHTML = `<tr><th>Teacher</th><th>Qualification</th><th>Status</th><th>Actions</th></tr>`;
+                body.innerHTML = data.map(t => `
+                    <tr>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <img src="${t.image || 'https://via.placeholder.com/40'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
+                                <span><b>${t.name}</b><br><small>${t.phone}</small></span>
+                            </div>
+                        </td>
+                        <td>${t.qualification}</td>
+                        <td><span class="status-badge status-${t.status}">${t.status}</span></td>
+                        <td>
+                            ${t.status !== 'verified' ? `<button onclick="postAction('verify', ${t.id})" class="btn btn-verify">Verify</button>` : ''}
+                            <button onclick="postAction('delete', ${t.id})" class="btn btn-delete"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        async function postAction(action, id) {
+            if (action === 'delete' && !confirm("Warning: This will permanently remove this record. Proceed?")) return;
+
+            try {
+                const response = await fetch('/.netlify/functions/api', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ADMIN_TOKEN}`
+                    },
+                    body: JSON.stringify({ 
+                        type: currentTab, 
+                        action: action, 
+                        id: id,
+                        actor: 'Web-Admin'
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    fetchData();
+                } else {
+                    alert("Unauthorized: " + (result.error || "Check your Admin Key"));
+                }
+            } catch (err) {
+                alert("Server error during operation.");
+            }
+        }
+
+        function logout() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
