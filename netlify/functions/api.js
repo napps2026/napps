@@ -1,7 +1,6 @@
 const { neon } = require('@neondatabase/serverless');
 
 exports.handler = async (event) => {
-    const origin = event.headers?.origin || '';
     const headers = {
         'Access-Control-Allow-Origin': '*', 
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -11,7 +10,19 @@ exports.handler = async (event) => {
 
     if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
 
+    // 1. Check for the URL inside the handler
     const databaseUrl = process.env.DATABASE_URL;
+    
+    if (!databaseUrl) {
+        console.error("CRITICAL: DATABASE_URL is missing from environment variables.");
+        return { 
+            statusCode: 500, 
+            headers, 
+            body: JSON.stringify({ error: 'Database configuration missing on server.' }) 
+        };
+    }
+
+    // 2. Initialize the connection here
     const sql = neon(databaseUrl);
 
     try {
@@ -25,7 +36,6 @@ exports.handler = async (event) => {
                 return { statusCode: 200, headers, body: JSON.stringify(rows) };
             }
             if (type === 'teachers') {
-                // Added bio to the selection
                 const rows = await sql`SELECT id, name, email, phone, qualification, bio, image_url as image, status FROM teachers ORDER BY name`;
                 return { statusCode: 200, headers, body: JSON.stringify(rows) };
             }
@@ -37,7 +47,7 @@ exports.handler = async (event) => {
             const { type, action, id, data } = payload;
             const t = type?.toLowerCase();
 
-            // 1. PUBLIC ACTION: REGISTRATION (No Admin Key Required)
+            // 1. PUBLIC ACTION: REGISTRATION
             if (action === 'register') {
                 if (t === 'schools') {
                     const ins = await sql`INSERT INTO schools (name, location, phone, image_url, status) 
@@ -45,7 +55,6 @@ exports.handler = async (event) => {
                     return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: ins[0].id }) };
                 }
                 if (t === 'teachers') {
-                    // Added Bio and proper column mapping
                     const ins = await sql`INSERT INTO teachers (name, email, phone, qualification, bio, image_url, status) 
                         VALUES (${data.name}, ${data.email}, ${data.phone}, ${data.qualification}, ${data.bio || null}, ${data.image_url}, 'pending') RETURNING id`;
                     return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: ins[0].id }) };
@@ -74,8 +83,7 @@ exports.handler = async (event) => {
 
         return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
     } catch (err) {
-        console.error(err);
-        // Smart Error handling for duplicate emails
+        console.error("Database Error:", err.message);
         const isDuplicate = err.message.includes('unique constraint');
         return { 
             statusCode: isDuplicate ? 409 : 500, 
