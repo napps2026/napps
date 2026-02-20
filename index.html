@@ -2,228 +2,348 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NAPPS Ogun | The Official Gateway Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAPPS Ogun | Official State Portal</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root {
-            --napps-green: #004d2c; 
-            --gold: #d4af37; 
+        :root { 
+            --primary: #051a13; 
+            --accent: #c5a028; 
+            --bg: #fdfdfb;
             --white: #ffffff;
-            --off-white: #f8f9fa;
-            --text-dark: #1a1a1a;
-            --glass: rgba(255, 255, 255, 0.92);
-            --shadow: 0 10px 40px rgba(0, 77, 44, 0.08);
+            --glass: rgba(255, 255, 255, 0.95);
         }
 
-        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: var(--off-white);
-            color: var(--text-dark);
-            overflow-x: hidden;
-            padding-bottom: 70px; 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--primary); line-height: 1.6; overflow-x: hidden; scroll-behavior: smooth; }
+
+        /* NAVIGATION */
+        nav {
+            background: var(--glass); padding: 15px 5%; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 20px rgba(0,0,0,0.08); backdrop-filter: blur(15px);
         }
+        .logo-area { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--primary); }
+        .logo-area img { height: 50px; }
+        .logo-area h1 { font-family: 'Cormorant Garamond'; font-size: 1.6rem; line-height: 1; }
+        .nav-links { display: flex; gap: 20px; list-style: none; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--primary); font-size: 0.85rem; font-weight: 700; transition: 0.3s; text-transform: uppercase; }
+        .nav-links a:hover { color: var(--accent); }
+        .btn-portal { background: var(--primary); color: var(--accent) !important; padding: 12px 24px; border-radius: 50px; letter-spacing: 1px; }
+        .mobile-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--primary); }
 
-        /* --- HEADER --- */
-        header {
-            position: fixed; top: 0; width: 100%; z-index: 1000;
-            background: var(--glass);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            padding: 12px 5%;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-
-        .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-        .brand img { height: 45px; width: auto; }
-        .brand-text h1 { font-family: 'Cormorant Garamond'; font-size: 1.4rem; color: var(--napps-green); line-height: 1; font-weight: 700; }
-        .brand-text span { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
-
-        .desktop-nav { display: flex; gap: 25px; align-items: center; }
-        .desktop-nav a { text-decoration: none; color: var(--napps-green); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; transition: 0.3s; }
-        .btn-action { padding: 10px 24px; background: var(--napps-green); color: white !important; border-radius: 50px; }
-
-        /* --- HERO --- */
+        /* HERO SECTION */
         .hero {
-            position: relative; height: 80vh; min-height: 500px;
-            background: linear-gradient(135deg, rgba(0, 77, 44, 0.85), rgba(0, 30, 15, 0.9)), 
-                        url('https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1600');
-            background-size: cover; background-position: center;
-            display: flex; align-items: center; justify-content: center; text-align: center;
-            color: white; padding: 0 20px;
-            clip-path: ellipse(150% 100% at 50% 0%);
+            padding: 140px 5% 100px; text-align: center; position: relative;
+            background: linear-gradient(135deg, rgba(5, 26, 19, 0.85), rgba(5, 26, 19, 0.95)), url('https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop') center/cover;
+            color: var(--white);
         }
+        .hero h2 { font-family: 'Cormorant Garamond'; font-size: 4.5rem; margin-bottom: 20px; color: var(--accent); line-height: 1.1; }
+        .hero p { max-width: 800px; margin: 0 auto 40px; font-size: 1.2rem; opacity: 0.9; font-weight: 300; }
+        .btn-main { background: var(--accent); color: var(--primary); padding: 18px 40px; border-radius: 50px; text-decoration: none; font-weight: 800; transition: 0.3s; display: inline-block; }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(197, 160, 40, 0.3); }
 
-        .hero-content h1 { font-family: 'Cormorant Garamond'; font-size: clamp(2.5rem, 6vw, 4rem); margin-bottom: 20px; }
-
-        /* --- TICKER --- */
-        .bank-ticker-wrap {
-            background: var(--napps-green); color: white; padding: 15px 0;
-            overflow: hidden; margin: -40px auto 0; width: 90%;
-            border-radius: 10px; position: relative; z-index: 10;
+        /* REGISTRATION GUIDE BOX */
+        .guide-box { 
+            background: var(--white); border: 1px solid rgba(197, 160, 40, 0.3); border-radius: 20px; 
+            padding: 40px; margin: -60px auto 0; position: relative; z-index: 10; max-width: 1100px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
         }
-        .ticker-move { display: flex; gap: 50px; animation: ticker 30s linear infinite; padding-left: 20px; }
-        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .step { text-align: center; }
+        .step-num { width: 45px; height: 45px; background: var(--primary); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: 800; font-size: 1.2rem; }
+        .step h5 { font-size: 0.95rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .step p { font-size: 0.85rem; color: #666; }
 
-        /* --- DIRECTORY --- */
-        .directory-section { padding: 80px 5%; max-width: 1200px; margin: 0 auto; }
-        .search-bar { max-width: 600px; margin: 0 auto 40px; position: relative; }
-        .search-bar input {
-            width: 100%; padding: 18px 25px; border-radius: 50px; border: 2px solid #eee;
-            font-family: 'Montserrat'; outline: none; transition: 0.3s;
-        }
-        .search-bar input:focus { border-color: var(--gold); }
+        /* SECTIONS GENERAL */
+        section { padding: 100px 5%; }
+        .section-title { text-align: center; margin-bottom: 60px; }
+        .section-title h3 { font-family: 'Cormorant Garamond'; font-size: 3rem; color: var(--primary); margin-bottom: 10px; }
+        .section-title div { width: 60px; height: 4px; background: var(--accent); margin: 0 auto; }
+        .section-title p { margin-top: 20px; color: #777; font-size: 1.1rem; }
 
-        .school-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .school-card {
-            background: white; border-radius: 15px; overflow: hidden; border: 1px solid #eee;
-            transition: 0.3s; position: relative;
-        }
-        .school-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
-        .school-img { height: 180px; width: 100%; object-fit: cover; background: #f0f0f0; }
-        .school-info { padding: 20px; }
-        .school-badge { 
-            position: absolute; top: 15px; right: 15px; background: var(--gold); color: var(--napps-green); 
-            font-size: 0.6rem; font-weight: 800; padding: 4px 8px; border-radius: 4px; 
-        }
+        /* EXECUTIVES */
+        .exec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+        .exec-card { background: var(--white); border-radius: 20px; text-align: center; padding: 40px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); transition: 0.4s; }
+        .exec-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(197, 160, 40, 0.1); }
+        .exec-img { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; margin: 0 auto 25px; border: 4px solid var(--accent); padding: 5px; }
 
-        /* --- MOBILE NAV --- */
-        .mobile-nav {
-            display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
-            background: white; z-index: 1000; border-top: 1px solid #eee;
-            justify-content: space-around; align-items: center;
-        }
+        /* DIRECTORY LAYOUT */
+        .directory-layout { display: grid; grid-template-columns: 1fr 3fr; gap: 40px; }
+        .live-panel { background: var(--primary); color: var(--white); border-radius: 25px; padding: 35px; height: 600px; display: flex; flex-direction: column; position: sticky; top: 120px; }
+        .scroller-container { flex-grow: 1; overflow: hidden; position: relative; margin-top: 20px; }
+        .scroller-content { animation: scrollUp 30s linear infinite; }
+        .scroller-container:hover .scroller-content { animation-play-state: paused; }
+        @keyframes scrollUp { 0% { transform: translateY(0); } 100% { transform: translateY(-100%); } }
+        .feed-item { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 3px solid var(--accent); }
 
-        @media (max-width: 900px) {
-            .desktop-nav { display: none; }
-            .mobile-nav { display: flex; }
+        .schools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .school-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: 0.3s; position: relative; border: 1px solid #f0f0f0; }
+        .school-img { height: 180px; background: #eee; }
+        .school-img img { width: 100%; height: 100%; object-fit: cover; }
+        .verified-badge { position: absolute; top: 15px; right: 15px; background: var(--accent); color: var(--primary); padding: 5px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 800; }
+
+        /* CONTACT SECTION */
+        .contact-container { display: grid; grid-template-columns: 1fr 1.5fr; gap: 40px; background: white; border-radius: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.05); overflow: hidden; }
+        .contact-info { background: var(--primary); color: white; padding: 60px; }
+        .contact-form { padding: 60px; }
+        .info-link { color: var(--accent); text-decoration: none; font-weight: 700; }
+        .form-input { width: 100%; padding: 15px; margin-bottom: 20px; border: 1px solid #eee; border-radius: 10px; font-family: inherit; }
+
+        /* FOOTER BRANDING */
+        footer { background: var(--primary); color: white; padding: 80px 5% 40px; text-align: center; }
+        .dev-brand { margin-top: 50px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.8rem; opacity: 0.8; }
+        .dev-brand a { color: var(--accent); text-decoration: none; font-weight: 800; }
+        .social-icons { display: flex; justify-content: center; gap: 20px; margin-top: 15px; }
+        .social-icons a { color: white; font-size: 1.2rem; transition: 0.3s; }
+        .social-icons a:hover { color: var(--accent); transform: translateY(-3px); }
+
+        @media (max-width: 992px) {
+            .directory-layout, .contact-container { grid-template-columns: 1fr; }
+            .live-panel { position: static; height: 400px; }
+            .hero h2 { font-size: 3rem; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <a href="index.html" class="brand">
-            <img src="https://via.placeholder.com/100x100/004d2c/d4af37?text=N" alt="NAPPS Logo">
-            <div class="brand-text">
+    <nav>
+        <a href="index.html" class="logo-area">
+            <img src="https://via.placeholder.com/80x80/051a13/c5a028?text=N" alt="NAPPS Logo">
+            <div>
                 <h1>NAPPS</h1>
-                <span>OGUN STATE CHAPTER</span>
+                <small style="font-weight: 800; color: var(--accent); letter-spacing: 2px;">OGUN STATE</small>
             </div>
         </a>
-        <nav class="desktop-nav">
-            <a href="index.html">Home</a>
-            <a href="teacher-reg.html">Teachers</a>
-            <a href="register.html" class="btn-action">JOIN NAPPS</a>
-        </nav>
-    </header>
-
-    <section class="hero">
-        <div class="hero-content">
-            <h1>The Unified Portal for<br>Private Education</h1>
-            <p>Empowering schools and teachers across the Gateway State.</p>
-        </div>
-    </section>
-
-    <div class="bank-ticker-wrap">
-        <div class="ticker-move">
-            <span><b>ECO BANK:</b> 0990147139 (NAPPS State Dues)</span>
-            <span><b>ECO BANK:</b> 0990147139 (Unified Exam Fees)</span>
-            <span><b>ECO BANK:</b> 0990147139 (Project Levy)</span>
-            <span><b>ECO BANK:</b> 0990147139 (NAPPS State Dues)</span>
-            <span><b>ECO BANK:</b> 0990147139 (Unified Exam Fees)</span>
-        </div>
-    </div>
-
-    <section class="directory-section">
-        <div style="text-align:center; margin-bottom:40px;">
-            <h2 style="font-family:'Cormorant Garamond'; font-size:2.5rem; color:var(--napps-green);">Verified Institutions</h2>
-            <p>Find accredited private schools in Ogun State.</p>
-        </div>
-
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search by school name or location...">
-        </div>
-
-        <div class="school-grid" id="schoolContainer">
-            <div style="grid-column: 1/-1; text-align:center; padding: 50px;">
-                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--gold);"></i>
-                <p style="margin-top:10px;">Syncing with Registry...</p>
-            </div>
-        </div>
-    </section>
-
-    <nav class="mobile-nav">
-        <a href="index.html" style="color:var(--napps-green);"><i class="fas fa-home"></i></a>
-        <a href="teacher-reg.html"><i class="fas fa-chalkboard-teacher"></i></a>
-        <a href="register.html"><i class="fas fa-plus-circle"></i></a>
+        <i class="fas fa-bars mobile-toggle" id="menuToggle"></i>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#about">About</a></li>
+            <li><a href="#executives">Executives</a></li>
+            <li><a href="#directory">Directory</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a href="verify.html">Verify Certificate</a></li>
+            <li><a href="register.html" class="btn-portal">Register <i class="fas fa-plus-circle"></i></a></li>
+        </ul>
     </nav>
 
-    <script>
-    let allSchools = [];
-    const container = document.getElementById('schoolContainer');
+    <header class="hero">
+        <h2>Pioneering Excellence in <br><span style="color: var(--white)">Private Education</span></h2>
+        <p>The digital heartbeat of the National Association of Proprietors of Private Schools (NAPPS), Ogun State Chapter. Empowering schools through technology and transparency.</p>
+        <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+            <a href="register.html" class="btn-main">Enroll Institution</a>
+            <a href="verify.html" class="btn-main" style="background: transparent; border: 2px solid var(--accent); color: var(--accent);">Verify a School</a>
+        </div>
+    </header>
 
-    // 1. Fetch Data with the correct 'type' parameter
-    async function loadDirectory() {
-        try {
-            // Added ?type=schools to be explicit
-            const response = await fetch('/.netlify/functions/api?type=schools');
-            if(!response.ok) throw new Error("Could not reach API");
-            
-            allSchools = await response.json();
-            renderSchools(allSchools);
-        } catch (error) {
-            console.error("Error:", error);
-            container.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:red; padding:20px;">
-                <i class="fas fa-exclamation-triangle"></i><br>
-                Unable to load directory. Please try again later.</p>`;
-        }
-    }
+    <section style="padding: 0 5%;">
+        <div class="guide-box">
+            <div class="step">
+                <div class="step-num">1</div>
+                <h5>Digital Registry</h5>
+                <p>Register your school profile online via our portal.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <h5>Proof of Dues</h5>
+                <p>Upload your current session payment receipt for vetting.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <h5>Approval</h5>
+                <p>State executives verify your bank payment and documents.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <h5>Certification</h5>
+                <p>Download your verified Digital Accreditation Certificate.</p>
+            </div>
+        </div>
+    </section>
 
-    // 2. Render Cards (Mapping 'image' and 'location' from your SQL)
-    function renderSchools(data) {
-        if(data.length === 0) {
-            container.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px;">No verified schools found.</p>`;
-            return;
-        }
+    <section id="about">
+        <div class="section-title">
+            <h3>Our Core Mandate</h3>
+            <div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 50px; align-items: center;">
+            <img src="https://images.unsplash.com/photo-1577896851231-70ef1460041e?q=80&w=2070&auto=format&fit=crop" style="width: 100%; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);" alt="Education">
+            <div>
+                <h4 style="font-family: 'Cormorant Garamond'; font-size: 2rem; color: var(--accent); margin-bottom: 20px;">Protecting the Integrity of Private Schools</h4>
+                <p>NAPPS Ogun State Chapter stands as the supreme regulatory body for private educational institutions. We provide the framework for curriculum excellence, administrative support, and governmental liaison.</p>
+                <p style="margin-top: 20px;">Through this portal, we ensure that every member school is properly vetted, creating a trusted environment for parents and students across the Gateway State.</p>
+            </div>
+        </div>
+    </section>
 
-        container.innerHTML = data.map(school => `
-            <div class="school-card">
-                ${school.status === 'verified' ? '<div class="school-badge">VERIFIED</div>' : ''}
-                
-                <img src="${school.image || 'https://via.placeholder.com/400x200?text=NAPPS+Institution'}" 
-                     class="school-img" 
-                     alt="${school.name}">
-                
-                <div class="school-info">
-                    <h3 style="font-family:'Cormorant Garamond'; font-size:1.4rem;">${school.name}</h3>
-                    <p style="font-size:0.85rem; color:#666; margin-top:5px;">
-                        <i class="fas fa-map-marker-alt" style="color:var(--gold)"></i> ${school.location}
-                    </p>
-                    <a href="tel:${school.phone}" style="display:block; text-decoration:none; width:100%; margin-top:15px; padding:10px; border:none; background:var(--off-white); font-weight:700; color:var(--napps-green); border-radius:5px; text-align:center; font-size:0.8rem;">
-                        <i class="fas fa-phone"></i> CALL SCHOOL
-                    </a>
+    <section id="executives" style="background: #f8f6f0;">
+        <div class="section-title">
+            <h3>The Executive Council</h3>
+            <div></div>
+            <p>Visionary leaders dedicated to the progress of private education in Ogun State.</p>
+        </div>
+        <div class="exec-grid">
+            <div class="exec-card">
+                <img src="https://via.placeholder.com/150" class="exec-img" alt="President">
+                <h5>Dr. Adebayo O.</h5>
+                <p style="color: var(--accent); font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">State Chairman</p>
+            </div>
+            <div class="exec-card">
+                <img src="https://via.placeholder.com/150" class="exec-img" alt="Secretary">
+                <h5>Mrs. Olufunke T.</h5>
+                <p style="color: var(--accent); font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">State Secretary</p>
+            </div>
+            <div class="exec-card">
+                <img src="https://via.placeholder.com/150" class="exec-img" alt="Treasurer">
+                <h5>Mr. Samuel K.</h5>
+                <p style="color: var(--accent); font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">Financial Secretary</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="directory">
+        <div class="section-title">
+            <h3>Verified Institutions</h3>
+            <div></div>
+            <p>Our gold-standard registry of accredited schools.</p>
+        </div>
+
+        <div class="directory-layout">
+            <div class="live-panel">
+                <h4 style="font-family: 'Cormorant Garamond'; color: var(--accent); font-size: 1.5rem; text-align: center; border-bottom: 1px solid rgba(197, 160, 40, 0.2); padding-bottom: 15px;">Live Updates</h4>
+                <div class="scroller-container">
+                    <div class="scroller-content" id="liveScroller">
+                        <div class="feed-item">
+                            <h6 style="color: var(--accent); font-size: 0.8rem;">OFFICIAL BANKING</h6>
+                            <p style="font-size: 0.75rem;">Eco Bank | 0990147139<br>NAPPS Ogun State Chapter</p>
+                        </div>
+                        <div class="feed-item">
+                            <h6 style="color: var(--accent); font-size: 0.8rem;">SYSTEM STATUS</h6>
+                            <p style="font-size: 0.75rem;">Registry synchronizing with State Database...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        `).join('');
-    }
 
-    // 3. Search Filter Logic (Matches 'name' and 'location')
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        const filtered = allSchools.filter(s => 
-            s.name.toLowerCase().includes(term) || 
-            (s.location && s.location.toLowerCase().includes(term))
-        );
-        renderSchools(filtered);
-    });
+            <div class="schools-grid" id="schoolGrid">
+                <p style="grid-column: 1/-1; text-align: center; color: #999;">Updating Registry...</p>
+            </div>
+        </div>
+    </section>
 
-    // Initialize the portal
-    loadDirectory();
-</script>
+    <section id="contact">
+        <div class="section-title">
+            <h3>Get in Touch</h3>
+            <div></div>
+        </div>
+        <div class="contact-container">
+            <div class="contact-info">
+                <h4 style="font-family: 'Cormorant Garamond'; font-size: 2rem; color: var(--accent); margin-bottom: 30px;">Secretariat Support</h4>
+                <p style="margin-bottom: 30px; opacity: 0.8;">Need help with your registration or certificate? Reach out to the state officers directly.</p>
+                
+                <div style="margin-bottom: 20px;">
+                    <i class="fas fa-phone-alt" style="color: var(--accent); margin-right: 10px;"></i> 
+                    <a href="tel:+2348000000000" class="info-link">+234 800 000 0000</a>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <i class="fas fa-envelope" style="color: var(--accent); margin-right: 10px;"></i> 
+                    <a href="mailto:support@nappsogun.org" class="info-link">support@nappsogun.org</a>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <i class="fas fa-map-marker-alt" style="color: var(--accent); margin-right: 10px;"></i> 
+                    <span>NAPPS Secretariat, Abeokuta, Ogun State.</span>
+                </div>
+            </div>
+            <div class="contact-form">
+                <form>
+                    <input type="text" class="form-input" placeholder="Your Name / School Name" required>
+                    <input type="email" class="form-input" placeholder="Email Address" required>
+                    <textarea class="form-input" rows="5" placeholder="How can we help you?"></textarea>
+                    <button type="submit" class="btn-main" style="width: 100%; border: none; cursor: pointer;">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <img src="https://via.placeholder.com/80x80/051a13/c5a028?text=N" alt="Footer Logo" style="height: 70px; margin-bottom: 20px;">
+        <h3 style="font-family: 'Cormorant Garamond'; font-size: 2rem; color: var(--accent);">NAPPS Ogun State Chapter</h3>
+        <p style="opacity: 0.7; max-width: 600px; margin: 15px auto;">Fostering qualitative education and unified administrative excellence across Ogun State.</p>
+        
+        <div class="dev-brand">
+            &copy; 2026 NAPPS Ogun. All Rights Reserved.
+            <br><br>
+            Developed by <a href="https://wa.me/234XXXXXXXXXX">Atmosphere Digital Solutions</a>
+            <div class="social-icons">
+                <a href="https://wa.me/234XXXXXXXXXX"><i class="fab fa-whatsapp"></i></a>
+                <a href="mailto:info@atmospheredigital.com"><i class="fas fa-envelope"></i></a>
+                <a href="tel:+234XXXXXXXXXX"><i class="fas fa-phone"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Toggle Mobile Menu
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        menuToggle.onclick = () => navLinks.classList.toggle('active');
+
+        // Close menu on click
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.onclick = () => navLinks.classList.remove('active');
+        });
+
+        // Initialize Data
+        window.onload = () => {
+            fetchSchools();
+        };
+
+        async function fetchSchools() {
+            try {
+                const res = await fetch('/.netlify/functions/api?type=schools');
+                const data = await res.json();
+                
+                const grid = document.getElementById('schoolGrid');
+                const scroller = document.getElementById('liveScroller');
+                grid.innerHTML = '';
+
+                if(!data || data.length === 0) {
+                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #999;">No verified schools in the registry yet.</p>';
+                    return;
+                }
+
+                data.reverse().forEach((school, index) => {
+                    // Populate Grid
+                    const card = document.createElement('div');
+                    card.className = 'school-card';
+                    card.innerHTML = `
+                        ${school.status === 'verified' ? '<div class="verified-badge"><i class="fas fa-check-circle"></i> VERIFIED</div>' : ''}
+                        <div class="school-img">
+                            <img src="${school.image_url || 'https://via.placeholder.com/400x300?text=School+Logo'}" alt="${school.name}">
+                        </div>
+                        <div style="padding: 20px;">
+                            <h4 style="font-family: 'Cormorant Garamond'; font-size: 1.4rem; margin-bottom: 5px;">${school.name}</h4>
+                            <p style="font-size: 0.8rem; font-weight: 700; color: var(--accent);"><i class="fas fa-map-marker-alt"></i> ${school.location}</p>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+
+                    // Add to Live Feed (Top 5)
+                    if(index < 5) {
+                        const feedItem = document.createElement('div');
+                        feedItem.className = 'feed-item';
+                        feedItem.innerHTML = `
+                            <h6 style="color: var(--accent); font-size: 0.8rem;">NEW ACCREDITATION</h6>
+                            <p style="font-size: 0.75rem;"><b>${school.name}</b> just verified their 2026 status!</p>
+                        `;
+                        scroller.appendChild(feedItem);
+                    }
+                });
+            } catch (err) {
+                console.error("Fetch error:", err);
+            }
+        }
+    </script>
 </body>
 </html>

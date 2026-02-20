@@ -21,7 +21,6 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background: var(--bg); font-family: 'Montserrat', sans-serif; color: var(--primary); height: 100vh; overflow: hidden; }
 
-        /* --- TOP NAVIGATION --- */
         header {
             height: 70px; background: var(--primary); color: white;
             display: flex; justify-content: space-between; align-items: center;
@@ -32,14 +31,12 @@
         .exam-info h4 { font-size: 0.9rem; letter-spacing: 1px; }
         .exam-info small { color: var(--accent); font-size: 0.7rem; font-weight: 700; }
 
-        /* --- MAIN LAYOUT --- */
         .wrapper { display: grid; grid-template-columns: 1fr 320px; height: calc(100vh - 70px); }
 
-        /* --- QUESTION AREA --- */
         .main-content { padding: 40px 6%; overflow-y: auto; background: white; }
         
         .progress-container { width: 100%; height: 6px; background: #eee; border-radius: 10px; margin-bottom: 40px; overflow: hidden; }
-        #progressBar { width: 10%; height: 100%; background: var(--accent); transition: 0.4s; }
+        #progressBar { width: 0%; height: 100%; background: var(--accent); transition: 0.4s; }
 
         .question-box h2 { font-size: 1.4rem; font-weight: 600; line-height: 1.6; margin-bottom: 30px; color: #333; }
         .options-grid { display: flex; flex-direction: column; gap: 15px; }
@@ -55,24 +52,20 @@
         .option.selected .circle { border-color: var(--primary); background: var(--primary); }
         .option.selected .circle::after { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
 
-        /* --- SIDEBAR --- */
         aside.sidebar { background: var(--bg); border-left: 1px solid #ddd; padding: 30px; display: flex; flex-direction: column; gap: 30px; }
         
-        /* Timer */
         .timer-card { background: var(--primary); color: white; padding: 20px; border-radius: 20px; text-align: center; }
         .timer-card small { font-size: 0.6rem; text-transform: uppercase; color: var(--accent); letter-spacing: 2px; }
         .timer-card h3 { font-size: 2rem; font-family: 'monospace'; margin-top: 5px; }
 
-        /* Question Grid */
         .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
         .nav-btn { 
             width: 100%; aspect-ratio: 1; border: 1px solid #ccc; background: white; 
             border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: 0.2s;
         }
-        .nav-btn.active { background: var(--primary); color: var(--accent); border-color: var(--primary); }
-        .nav-btn.answered { background: var(--accent); color: var(--primary); border-color: var(--accent); }
+        .nav-btn.active { border: 2px solid var(--primary); color: var(--primary); transform: scale(1.1); }
+        .nav-btn.answered { background: var(--primary); color: var(--accent); border-color: var(--primary); }
 
-        /* Footer Buttons */
         .action-btns { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
         .btn { padding: 15px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; text-transform: uppercase; transition: 0.3s; }
         .btn-next { background: var(--primary); color: var(--accent); }
@@ -97,8 +90,8 @@
             <span>NAPPS <b>UNIFIED EXAM</b></span>
         </div>
         <div class="exam-info">
-            <h4 id="subjectDisplay">MATHEMATICS (SS2)</h4>
-            <small>CANDIDATE: SAMUEL ADEBAYO</small>
+            <h4 id="subjectDisplay">LOADING...</h4>
+            <small id="candidateDisplay">CANDIDATE: VERIFYING...</small>
         </div>
     </header>
 
@@ -109,11 +102,10 @@
             </div>
 
             <div class="question-box">
-                <p style="color: var(--accent); font-weight: 800; font-size: 0.75rem; margin-bottom: 10px;" id="qNumber">QUESTION 1 OF 40</p>
-                <h2 id="questionText">The diagram above shows a triangle with sides a, b, and c. If angle C is 90 degrees, which of the following expresses the Pythagorean theorem?</h2>
+                <p style="color: var(--accent); font-weight: 800; font-size: 0.75rem; margin-bottom: 10px;" id="qNumber">LOADING QUESTIONS...</p>
+                <h2 id="questionText">Connecting to NAPPS Exam Server...</h2>
                 
-                <div class="options-grid" id="optionsGrid">
-                    </div>
+                <div class="options-grid" id="optionsGrid"></div>
             </div>
 
             <div style="margin-top: 50px; display: flex; gap: 15px;">
@@ -125,17 +117,16 @@
         <aside class="sidebar">
             <div class="timer-card">
                 <small>Time Remaining</small>
-                <h3 id="timer">59:59</h3>
+                <h3 id="timer">--:--</h3>
             </div>
 
             <div>
                 <p style="font-size: 0.7rem; font-weight: 700; color: #888; margin-bottom: 15px; text-transform: uppercase;">Question Map</p>
-                <div class="nav-grid" id="navGrid">
-                    </div>
+                <div class="nav-grid" id="navGrid"></div>
             </div>
 
             <div class="action-card" style="background: white; padding: 15px; border-radius: 15px; border: 1px solid #eee;">
-                <p style="font-size: 0.7rem; color: #666;"><i class="fas fa-info-circle"></i> Changes are saved automatically in real-time.</p>
+                <p style="font-size: 0.7rem; color: #666;"><i class="fas fa-info-circle"></i> Answers are synced to the cloud automatically.</p>
             </div>
 
             <div class="action-btns">
@@ -145,23 +136,52 @@
     </div>
 
 <script>
-    // Configuration
-    const totalQuestions = 40;
+    // --- APP STATE ---
+    let questionBank = [];
     let currentQ = 1;
-    let answers = {}; // Store student answers
-    let timeLeft = 3600; // 60 minutes in seconds
+    let answers = {}; 
+    let timeLeft = 3600; 
+    let isSubmitting = false;
+    let studentData = null;
 
-    // Initialize Page
-    function init() {
-        renderNavGrid();
-        updateDisplay();
-        startTimer();
+    // --- INITIALIZATION ---
+    async function init() {
+        // 1. Get student data from Login Session
+        const rawData = sessionStorage.getItem('napps_student');
+        if (!rawData) {
+            window.location.href = 'login.html';
+            return;
+        }
+        studentData = JSON.parse(rawData);
+
+        // 2. Update Header UI
+        document.getElementById('candidateDisplay').innerText = `CANDIDATE: ${studentData.name.toUpperCase()}`;
+        document.getElementById('subjectDisplay').innerText = `${studentData.subject.toUpperCase()} (${studentData.level})`;
+
+        // 3. Fetch real questions based on Login choices
+        try {
+            const response = await fetch(`/.netlify/functions/api?type=questions&subject=${studentData.subject}&level=${studentData.level}`);
+            questionBank = await response.json();
+
+            if (questionBank.length === 0) {
+                document.getElementById('questionText').innerText = "No questions found for this subject/level.";
+                return;
+            }
+
+            renderNavGrid(questionBank.length);
+            updateDisplay();
+            startTimer();
+        } catch (err) {
+            console.error("Fetch error:", err);
+            document.getElementById('questionText').innerText = "Network Error: Could not load questions.";
+        }
     }
 
-    // Render the 1-40 Grid
-    function renderNavGrid() {
+    // --- UI RENDERING ---
+    function renderNavGrid(total) {
         const grid = document.getElementById('navGrid');
-        for (let i = 1; i <= totalQuestions; i++) {
+        grid.innerHTML = "";
+        for (let i = 1; i <= total; i++) {
             const btn = document.createElement('button');
             btn.className = 'nav-btn';
             btn.id = `nav-${i}`;
@@ -172,76 +192,105 @@
     }
 
     function updateDisplay() {
-        // UI Updates
-        document.getElementById('qNumber').innerText = `QUESTION ${currentQ} OF ${totalQuestions}`;
-        document.getElementById('progressBar').style.width = `${(currentQ / totalQuestions) * 100}%`;
+        if (questionBank.length === 0) return;
         
-        // Active Navigation Highlight
+        const qData = questionBank[currentQ - 1];
+        
+        document.getElementById('qNumber').innerText = `QUESTION ${currentQ} OF ${questionBank.length}`;
+        document.getElementById('progressBar').style.width = `${(currentQ / questionBank.length) * 100}%`;
+        document.getElementById('questionText').innerText = qData.question_text;
+        
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(`nav-${currentQ}`).classList.add('active');
 
-        // Dynamic Options (Demo)
-        const options = ['a² + b² = c²', 'a + b = c', 'sin(A) = a/c', 'Area = 1/2 bh'];
+        const options = [
+            { key: 'A', text: qData.option_a },
+            { key: 'B', text: qData.option_b },
+            { key: 'C', text: qData.option_c },
+            { key: 'D', text: qData.option_d }
+        ];
+
         const grid = document.getElementById('optionsGrid');
-        grid.innerHTML = options.map((opt, idx) => `
-            <div class="option ${answers[currentQ] === idx ? 'selected' : ''}" onclick="selectOption(${idx})">
+        grid.innerHTML = options.map(opt => `
+            <div class="option ${answers[qData.id] === opt.key ? 'selected' : ''}" onclick="selectOption(${qData.id}, '${opt.key}')">
                 <div class="circle"></div>
-                <span>${opt}</span>
+                <span><b>${opt.key}.</b> ${opt.text}</span>
             </div>
         `).join('');
     }
 
-    function selectOption(idx) {
-        answers[currentQ] = idx;
+    // --- CORE LOGIC ---
+    function selectOption(qId, choice) {
+        if (isSubmitting) return;
+        answers[qId] = choice;
         document.getElementById(`nav-${currentQ}`).classList.add('answered');
         updateDisplay();
     }
 
     function nextQuestion() {
-        if (currentQ < totalQuestions) {
-            currentQ++;
-            updateDisplay();
-        }
+        if (currentQ < questionBank.length) { currentQ++; updateDisplay(); }
     }
 
     function prevQuestion() {
-        if (currentQ > 1) {
-            currentQ--;
-            updateDisplay();
-        }
+        if (currentQ > 1) { currentQ--; updateDisplay(); }
     }
 
     function jumpTo(q) {
-        currentQ = q;
-        updateDisplay();
+        currentQ = q; updateDisplay();
     }
 
     function startTimer() {
         const timerEl = document.getElementById('timer');
         const interval = setInterval(() => {
+            if (isSubmitting) { clearInterval(interval); return; }
             timeLeft--;
             const mins = Math.floor(timeLeft / 60);
             const secs = timeLeft % 60;
             timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             
             if (timeLeft <= 300) timerEl.parentElement.style.background = 'var(--danger)';
-            if (timeLeft <= 0) {
-                clearInterval(interval);
-                finishExam();
-            }
+            if (timeLeft <= 0) { clearInterval(interval); finishExam(true); }
         }, 1000);
     }
 
-    function finishExam() {
-        const confirmed = confirm("Are you sure you want to end your examination? You cannot go back.");
-        if (confirmed) {
-            alert("Examination Submitted. Your result will be sent to your school.");
+    // --- SUBMISSION ---
+    async function finishExam(isAutoSubmit = false) {
+        if (!isAutoSubmit && !confirm("Ready to submit? You cannot change your answers after this.")) return;
+
+        isSubmitting = true;
+        const submitBtn = document.querySelector('.btn-submit');
+        submitBtn.innerText = "SUBMITTING...";
+        submitBtn.disabled = true;
+
+        const payload = {
+            action: 'submit_exam',
+            data: {
+                student_name: studentData.name, 
+                school_name: studentData.school,
+                subject: studentData.subject,
+                level: studentData.level,
+                student_answers: answers 
+            }
+        };
+
+        try {
+            const res = await fetch('/.netlify/functions/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            
+            alert(`EXAM SUBMITTED!\nStudent: ${studentData.name}\nScore: ${result.score} / ${result.total}`);
+            sessionStorage.removeItem('napps_student'); // Clear session
             window.location.href = "index.html";
+        } catch (err) {
+            alert("Connection error. Don't close this page. Notify your supervisor.");
+            console.error(err);
         }
     }
 
     window.onload = init;
 </script>
-
 </body>
 </html>

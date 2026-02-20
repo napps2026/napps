@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presidential Control | NAPPS Ogun</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --primary: #051a13; 
+            --accent: #c5a028; 
+            --danger: #d32f2f; 
+            --bg: #f4f7f6; 
+            --white: #ffffff;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); display: flex; overflow-x: hidden; }
+        
+        /* AUTH OVERLAY */
+        #authOverlay { 
+            position: fixed; inset: 0; background: linear-gradient(135deg, var(--primary), #0a2e22); 
+            display: flex; align-items: center; justify-content: center; z-index: 10000; 
+        }
+        .login-card { 
+            background: var(--white); padding: 40px; border-radius: 20px; text-align: center; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 90%; max-width: 400px; 
+            border-top: 5px solid var(--accent);
+        }
+        .login-card h2 { font-family: 'Cormorant Garamond'; color: var(--primary); font-size: 2.2rem; }
+        .auth-input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid #eee; border-radius: 10px; font-size: 1rem; outline: none; }
+        .btn-auth { background: var(--primary); color: var(--accent); width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; }
+
+        /* SIDEBAR */
+        .sidebar { width: 280px; background: var(--primary); height: 100vh; color: var(--white); position: fixed; z-index: 1000; }
+        .sidebar-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(197, 160, 40, 0.2); }
+        .nav-item { padding: 16px 25px; cursor: pointer; display: flex; align-items: center; gap: 15px; transition: 0.3s; opacity: 0.6; }
+        .nav-item.active { opacity: 1; background: rgba(255,255,255,0.05); border-left: 4px solid var(--accent); color: var(--accent); }
+
+        /* MAIN */
+        .main { margin-left: 280px; width: calc(100% - 280px); padding: 40px; min-height: 100vh; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: var(--white); padding: 25px; border-radius: 15px; border-bottom: 4px solid var(--accent); position: relative; }
+        .stat-card h2 { font-size: 2.5rem; color: var(--primary); }
+
+        /* TABLE */
+        .table-container { background: var(--white); padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { text-align: left; padding: 15px; border-bottom: 2px solid #eee; font-size: 0.75rem; color: #888; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; }
+
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
+        .badge-verified { background: #e8f5e9; color: #2e7d32; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+
+        .btn-export { background: var(--accent); color: var(--primary); border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="authOverlay">
+        <div class="login-card">
+            <h2>PRESIDENT</h2>
+            <p>Master Console Access</p>
+            <form onsubmit="event.preventDefault(); login();">
+                <input type="password" id="masterKey" class="auth-input" placeholder="Enter Security Key" required>
+                <button type="submit" class="btn-auth" id="loginBtn">UNLOCK CONSOLE</button>
+            </form>
+        </div>
+    </div>
+
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h3>NAPPS OGUN</h3>
+            <p style="font-size: 0.6rem; color: var(--accent); letter-spacing: 2px;">PRESIDENTIAL OVERRIDE</p>
+        </div>
+        <div class="nav-item active" onclick="changeTab('schools', this)"><i class="fas fa-school"></i> Schools Registry</div>
+        <div class="nav-item" onclick="changeTab('teachers', this)"><i class="fas fa-chalkboard-teacher"></i> Teachers Registry</div>
+        <div class="nav-item" onclick="changeTab('logs', this)"><i class="fas fa-fingerprint"></i> Audit Logs</div>
+        <div class="nav-item" onclick="location.reload()" style="color: var(--danger); margin-top: 40px;"><i class="fas fa-power-off"></i> Lock Panel</div>
+    </nav>
+
+    <div class="main">
+        <div class="stat-grid">
+            <div class="stat-card"><h5>Total Schools</h5><h2 id="count-schools">0</h2></div>
+            <div class="stat-card"><h5>Total Teachers</h5><h2 id="count-teachers">0</h2></div>
+            <div class="stat-card"><h5>Security Logs</h5><h2 id="count-logs">0</h2></div>
+        </div>
+
+        <div class="table-container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="viewTitle">Schools Registry</h3>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="searchInput" placeholder="Search..." onkeyup="filterTable()" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                    <button onclick="exportData()" class="btn-export">Export CSV</button>
+                </div>
+            </div>
+
+            <table id="mainTable">
+                <thead id="tableHead"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let MASTER_KEY = "";
+        let currentTab = "schools";
+        let rawData = [];
+
+        async function login() {
+            MASTER_KEY = document.getElementById('masterKey').value;
+            document.getElementById('authOverlay').classList.add('hidden');
+            fetchData();
+        }
+
+        async function fetchData() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="5">Syncing Registry...</td></tr>';
+            
+            try {
+                const res = await fetch(`/.netlify/functions/api?type=${currentTab}`, {
+                    headers: { 'Authorization': `Bearer ${MASTER_KEY}` }
+                });
+                if (!res.ok) throw new Error("Unauthorized");
+                rawData = await res.json();
+                renderTable();
+                updateStats();
+            } catch (err) {
+                tbody.innerHTML = '<td colspan="5" style="color:red">Access Denied: Invalid Master Key</td>';
+            }
+        }
+
+        function renderTable(data = rawData) {
+            const head = document.getElementById('tableHead');
+            const body = document.getElementById('tableBody');
+            
+            if (currentTab === 'logs') {
+                head.innerHTML = `<tr><th>Timestamp</th><th>Officer</th><th>Action</th><th>Target</th></tr>`;
+                body.innerHTML = data.map(l => `
+                    <tr>
+                        <td>${new Date(l.timestamp).toLocaleString()}</td>
+                        <td><b>${l.actor}</b></td>
+                        <td>${l.action}</td>
+                        <td>${l.target_name || 'System'}</td>
+                    </tr>
+                `).join('');
+            } else {
+                head.innerHTML = `<tr><th>Name</th><th>Location/Email</th><th>Status</th><th>Actions</th></tr>`;
+                body.innerHTML = data.map(d => `
+                    <tr>
+                        <td><b>${d.name}</b></td>
+                        <td>${d.location || d.email}</td>
+                        <td><span class="badge badge-${d.status}">${d.status}</span></td>
+                        <td><button onclick="deleteRec('${d.id}')" style="color:red; border:none; background:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        async function deleteRec(id) {
+            if(!confirm("PRESIDENTIAL DELETE: Permanent removal. Continue?")) return;
+            const res = await fetch('/.netlify/functions/api', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${MASTER_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', type: currentTab, id: id })
+            });
+            if(res.ok) fetchData();
+        }
+
+        function changeTab(tab, el) {
+            currentTab = tab;
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('viewTitle').innerText = tab.toUpperCase();
+            fetchData();
+        }
+
+        function filterTable() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = rawData.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(q)));
+            renderTable(filtered);
+        }
+
+        function updateStats() {
+            document.getElementById(`count-${currentTab}`).innerText = rawData.length;
+        }
+
+        function exportData() {
+            const headers = Object.keys(rawData[0]).join(",");
+            const rows = rawData.map(r => Object.values(r).map(v => `"${v}"`).join(",")).join("\n");
+            const blob = new Blob([headers + "\n" + rows], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `NAPPS_Ogun_${currentTab}.csv`;
+            a.click();
+        }
+    </script>
+</body>
+</html>

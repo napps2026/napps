@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Portal | NAPPS Ogun</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --napps-green: #004d2c; --gold: #d4af37; --bg: #f0f2f5; --danger: #ff7675; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); margin: 0; }
+        
+        #authOverlay { position: fixed; inset: 0; background: var(--napps-green); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .login-card { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+
+        header { background: var(--napps-green); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; }
+        .role-tag { background: var(--gold); color: var(--napps-green); padding: 5px 12px; border-radius: 20px; font-weight: 800; font-size: 0.7rem; }
+        
+        .container { padding: 30px; max-width: 1200px; margin: auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #eee; transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        .preview-box { width: 100%; height: 200px; background: #222; overflow: hidden; cursor: zoom-in; }
+        .preview-box img { width: 100%; height: 100%; object-fit: contain; }
+
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; transition: 0.2s; }
+        .btn-verify { background: var(--napps-green); color: var(--gold); }
+        .btn-verify:hover { opacity: 0.9; }
+        
+        /* PRO Upload Section */
+        .upload-section { background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 2px dashed var(--gold); }
+        .form-group { margin-bottom: 15px; }
+        input[type="text"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+
+        .hidden { display: none !important; }
+        .loader { text-align: center; padding: 50px; font-weight: 600; color: var(--napps-green); }
+    </style>
+</head>
+<body>
+
+    <div id="authOverlay">
+        <div class="login-card">
+            <h2 style="color: var(--napps-green); margin-bottom: 5px;">OFFICER LOGIN</h2>
+            <p style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">NAPPS OGUN SECURE TERMINAL</p>
+            <form onsubmit="handleLogin(event)">
+                <input type="password" id="execKey" placeholder="Enter Security Key" style="width:100%; padding:14px; margin-bottom:20px; border:2px solid #eee; border-radius:10px; box-sizing:border-box; text-align: center; font-size: 1.1rem;">
+                <button type="submit" class="btn" style="background:var(--gold); color: var(--napps-green);">UNLOCK TOOLS</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="mainDashboard" class="hidden">
+        <header>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-shield-halved" style="color: var(--gold);"></i>
+                <h3 style="margin: 0; font-size: 1rem; letter-spacing: 1px;">NAPPS OGUN ADMIN</h3>
+            </div>
+            <div>
+                <span id="displayRole" class="role-tag">OFFICER</span>
+                <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); cursor:pointer; margin-left:15px; font-weight: 700;">Logout</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div id="proTools" class="hidden">
+                <div class="upload-section">
+                    <h3 style="margin-top: 0; color: var(--napps-green);"><i class="fas fa-camera"></i> Post to Public Gallery</h3>
+                    <div class="grid" style="grid-template-columns: 1fr 1fr; align-items: end;">
+                        <div class="form-group">
+                            <label style="font-size: 0.7rem; font-weight: 700;">EVENT TITLE</label>
+                            <input type="text" id="galTitle" placeholder="e.g. 2026 Sports Day">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.7rem; font-weight: 700;">IMAGE URL (S3/Cloudinary)</label>
+                            <input type="text" id="galUrl" placeholder="https://...">
+                        </div>
+                    </div>
+                    <button onclick="uploadGallery()" class="btn btn-verify" style="width: auto; padding: 12px 30px;">PUBLISH MOMENT</button>
+                </div>
+            </div>
+
+            <h2 id="welcomeText" style="color: var(--napps-green);">Pending Verifications</h2>
+            <div id="dataGrid" class="grid">
+                <div class="loader">Initialising Registry...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let USER_KEY = "";
+        let USER_ROLE = "";
+
+        async function handleLogin(e) {
+            if(e) e.preventDefault();
+            USER_KEY = document.getElementById('execKey').value.trim();
+            if(!USER_KEY) return alert("Key required");
+
+            // Role Detection
+            const k = USER_KEY.toLowerCase();
+            if(k.includes("pro")) USER_ROLE = "PRO";
+            else if(k.includes("treasurer") || k.includes("cash")) USER_ROLE = "TREASURER";
+            else USER_ROLE = "SECRETARY";
+
+            // UI Switch
+            document.getElementById('authOverlay').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            document.getElementById('displayRole').innerText = USER_ROLE;
+
+            if(USER_ROLE === "PRO") {
+                document.getElementById('proTools').classList.remove('hidden');
+            }
+
+            fetchExecutiveData();
+        }
+
+        async function fetchExecutiveData() {
+            const grid = document.getElementById('dataGrid');
+            const type = (USER_ROLE === "PRO") ? "teachers" : "schools";
+            
+            try {
+                const response = await fetch(`/.netlify/functions/api?type=${type}`, {
+                    headers: { 'Authorization': `Bearer ${USER_KEY}` }
+                });
+                
+                if(!response.ok) throw new Error();
+                const data = await response.json();
+                
+                // Only show pending items for Executives
+                const pending = data.filter(item => item.status === 'pending');
+                renderCards(pending, type);
+            } catch (err) {
+                grid.innerHTML = `<div class="loader" style="color:red;">Access Denied: Invalid Security Key</div>`;
+            }
+        }
+
+        function renderCards(items, type) {
+            const grid = document.getElementById('dataGrid');
+            if(items.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; background: white; border-radius: 15px;">
+                    <i class="fas fa-check-circle" style="font-size: 3rem; color: #2ecc71; margin-bottom: 15px;"></i>
+                    <h3>All Clear!</h3>
+                    <p>No pending ${type} verifications at the moment.</p>
+                </div>`;
+                return;
+            }
+
+            grid.innerHTML = items.map(item => `
+                <div class="card">
+                    <div class="preview-box" onclick="window.open('${(USER_ROLE === 'TREASURER') ? item.receipt_url : item.image_url}')">
+                        <img src="${(USER_ROLE === 'TREASURER') ? item.receipt_url : item.image_url}" title="Click to enlarge">
+                    </div>
+                    <div style="padding:20px;">
+                        <h4 style="margin: 0 0 5px 0; color: var(--napps-green);">${item.name}</h4>
+                        <p style="font-size:0.75rem; color: #666; margin-bottom: 15px;">
+                            <i class="fas fa-location-dot"></i> ${item.location || item.qualification}
+                        </p>
+                        <button onclick="approve('${item.id}', '${type}')" class="btn btn-verify">
+                            <i class="fas fa-check"></i> VERIFY RECORD
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function approve(id, type) {
+            if(!confirm("Are you sure you want to officially verify this record?")) return;
+            
+            try {
+                const res = await fetch('/.netlify/functions/api', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${USER_KEY}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ action: 'verify', type: type, id: id })
+                });
+                
+                if(res.ok) {
+                    alert("Record Verified & Logged.");
+                    fetchExecutiveData();
+                } else {
+                    alert("Verification failed. Check your permissions.");
+                }
+            } catch (e) {
+                alert("Network error.");
+            }
+        }
+
+        async function uploadGallery() {
+            const title = document.getElementById('galTitle').value;
+            const url = document.getElementById('galUrl').value;
+            if(!title || !url) return alert("Fill all gallery fields");
+
+            const res = await fetch('/.netlify/functions/api', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${USER_KEY}`,
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ 
+                    action: 'register', 
+                    type: 'gallery', 
+                    data: { title: title, url: url } 
+                })
+            });
+
+            if(res.ok) {
+                alert("Photo added to public gallery!");
+                document.getElementById('galTitle').value = "";
+                document.getElementById('galUrl').value = "";
+            }
+        }
+    </script>
+</body>
+</html>

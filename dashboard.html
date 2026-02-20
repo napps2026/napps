@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Dashboard | NAPPS Ogun</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #051a13; --accent: #c5a028; --bg: #f8f9fa; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .dash-container { max-width: 800px; margin: 40px auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .dash-header { background: var(--primary); color: white; padding: 40px; text-align: center; }
+        .status-pill { display: inline-block; padding: 8px 20px; border-radius: 50px; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; margin-top: 10px; }
+        .status-verified { background: var(--accent); color: var(--primary); }
+        .status-pending { background: #666; color: white; }
+        .dash-body { padding: 40px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .info-card { padding: 20px; border: 1px solid #eee; border-radius: 12px; }
+        .btn-logout { background: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="dash-container">
+    <div class="dash-header">
+        <img id="schoolLogo" src="" style="height: 80px; width: 80px; border-radius: 50%; border: 3px solid var(--accent); object-fit: cover; margin-bottom: 15px; background: white;">
+        <h1 id="schoolName" style="font-family: 'Cormorant Garamond'; margin: 0;">Loading...</h1>
+        <div id="statusBadge" class="status-pill status-pending">Checking Status...</div>
+    </div>
+
+    <div class="dash-body">
+        <h3>Institutional Details</h3>
+        <div class="info-grid">
+            <div class="info-card">
+                <label style="font-size: 0.7rem; font-weight: 700; color: #888;">LGA / LOCATION</label>
+                <p id="schoolLoc" style="margin: 5px 0 0; font-weight: 600;">-</p>
+            </div>
+            <div class="info-card">
+                <label style="font-size: 0.7rem; font-weight: 700; color: #888;">MEMBERSHIP ID</label>
+                <p id="schoolId" style="margin: 5px 0 0; font-weight: 600;">-</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center; padding: 30px; border: 2px dashed #eee; border-radius: 15px;">
+            <i class="fas fa-certificate" style="font-size: 2rem; color: var(--accent); margin-bottom: 10px;"></i>
+            <p>Membership Certificate will be available for download here once verified.</p>
+        </div>
+
+        <div style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="index.html" style="color: var(--primary); font-weight: 700; text-decoration: none;"><i class="fas fa-arrow-left"></i> Public Site</a>
+            <button class="btn-logout" onclick="logout()">LOGOUT</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // In a real app, you'd use a Session or JWT. 
+    // Here, we retrieve the school data passed during login from localStorage.
+    const schoolData = JSON.parse(localStorage.getItem('activeMember'));
+
+    if (!schoolData) {
+        window.location.href = 'login.html';
+    } else {
+        document.getElementById('schoolName').innerText = schoolData.name;
+        document.getElementById('schoolLoc').innerText = schoolData.location;
+        document.getElementById('schoolId').innerText = 'NAPPS/OG/' + schoolData.id.toString().padStart(4, '0');
+        document.getElementById('schoolLogo').src = schoolData.image_url || 'https://via.placeholder.com/100';
+        
+        const badge = document.getElementById('statusBadge');
+        if (schoolData.status === 'verified') {
+            badge.innerText = "Verified Member";
+            badge.className = "status-pill status-verified";
+        } else {
+            badge.innerText = "Verification Pending";
+            badge.className = "status-pill status-pending";
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('activeMember');
+        window.location.href = 'login.html';
+    }
+</script>
+
+</body>
+</html>

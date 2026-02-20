@@ -1,60 +1,73 @@
--- 1. Schools Table
-CREATE TABLE IF NOT EXISTS schools (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    phone VARCHAR(50),
-    image_url TEXT,
-    receipt TEXT,
-    status VARCHAR(50) DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 2. Teachers Table
-CREATE TABLE IF NOT EXISTS teachers (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    phone VARCHAR(50),
-    qualification VARCHAR(255),
-    image_url TEXT,
-    bio TEXT,
-    status VARCHAR(50) DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 3. Gallery Table
-CREATE TABLE IF NOT EXISTS gallery (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255),
-    image_url TEXT NOT NULL,
-    caption TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 4. Jobs Table (Linked to Schools)
-CREATE TABLE IF NOT EXISTS jobs (
-    id SERIAL PRIMARY KEY,
-    school_id INTEGER REFERENCES schools(id) ON DELETE CASCADE,
-    subject VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 5. Audit Logs Table
-CREATE TABLE IF NOT EXISTS logs (
-    id SERIAL PRIMARY KEY,
-    actor VARCHAR(255),
-    action VARCHAR(100) NOT NULL,
-    target_id VARCHAR(255),
-    details JSONB,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 6. Insert Sample Data
-INSERT INTO schools (name, location, image_url) VALUES
-('Divine Heights Academy', 'Abeokuta South', 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400'),
-('Covenant Success College', 'Sango Ota', 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400');
-
-INSERT INTO gallery (title, image_url, caption) VALUES
-('NAPPS Annual Conference', 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800', 'Members at the annual conference.');
+-- Failed query:
+-- -- =============================================
+-- -- NAPPS OGUN STATE - MASTER DATABASE SCHEMA
+-- -- =============================================
+-- 
+-- -- 1. SCHOOLS (The backbone of the association)
+-- CREATE TABLE IF NOT EXISTS schools (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     location VARCHAR(255) NOT NULL,
+--     phone VARCHAR(50),
+--     image_url TEXT,
+--     receipt_url TEXT, -- Treasury verification
+--     status VARCHAR(50) DEFAULT 'pending', -- 'pending' or 'verified'
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+-- 
+-- -- 2. TEACHERS (The recruitment pool)
+-- CREATE TABLE IF NOT EXISTS teachers (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255) NOT NULL,
+--     email VARCHAR(255) NOT NULL UNIQUE,
+--     phone VARCHAR(50),
+--     qualification VARCHAR(255),
+--     bio TEXT,
+--     image_url TEXT,
+--     status VARCHAR(50) DEFAULT 'pending',
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+-- 
+-- -- 3. PUBLIC GALLERY (PRO's showcase)
+-- CREATE TABLE IF NOT EXISTS gallery (
+--     id SERIAL PRIMARY KEY,
+--     title VARCHAR(255),
+--     image_url TEXT NOT NULL,
+--     caption TEXT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+-- 
+-- -- 4. UNIFIED EXAM QUESTIONS (The CBT Engine)
+-- CREATE TABLE IF NOT EXISTS questions (
+--     id SERIAL PRIMARY KEY,
+--     subject VARCHAR(100) NOT NULL,    -- e.g., 'Mathematics'
+--     class_level VARCHAR(50) NOT NULL, -- e.g., 'SS2'
+--     question_text TEXT NOT NULL,
+--     option_a TEXT NOT NULL,
+--     option_b TEXT NOT NULL,
+--     option_c TEXT NOT NULL,
+--     option_d TEXT NOT NULL,
+--     correct_option CHAR(1) NOT NULL,  -- 'A', 'B', 'C', or 'D'
+--     image_hint TEXT                   -- URL for diagrams/shapes
+-- );
+-- 
+-- -- 5. AUDIT LOGS (Accountability for Presidents/Admins)
+-- CREATE TABLE IF NOT EXISTS logs (
+--     id SERIAL PRIMARY KEY,
+--     actor VARCHAR(255),      -- Who did it (e.g., 'PRO', 'President')
+--     action VARCHAR(100),     -- What happened (e.g., 'Verified Teacher')
+--     target_id INTEGER,       -- ID of the school/teacher affected
+--     details TEXT,
+--     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+-- 
+-- -- =============================================
+-- -- SAMPLE DATA FOR CBT TESTING (Mathematics SS2)
+-- -- =============================================
+-- 
+-- INSERT INTO questions (subject, class_level, question_text, option_a, option_b, option_c, option_d, correct_option) 
+-- VALUES 
+-- ('Mathematics', 'SS2', 'If angle C in a triangle is 90 degrees, which formula represents the Pythagorean theorem?', 'a + b = c', 'a² + b² = c²', 'sin(A) = a/c', 'Area = 1/2 bh', 'B'),
+-- ('Mathematics', 'SS2', 'Find the value of x if 2x + 15 = 35', '5', '10', '15', '20', 'B');
+-- Query can't be composed effectively.
+-- The EXPLAIN command cannot be used with CREATE TABLE statements. EXPLAIN is typically used for analyzing SELECT, INSERT, UPDATE, DELETE, and other DML statements, not for DDL statements like CREATE TABLE. To create the table, you should remove the EXPLAIN clause and execute the CREATE TABLE statement directly.
