@@ -2,36 +2,78 @@ const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { neon } = require('@neondatabase/serverless');
 
 exports.handler = async (event) => {
-    // ... (CORS Headers same as before)
+    const headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Content-Type': 'application/json'
+    };
+
+    if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: 'OK' };
 
     try {
-        // --- ADMIN ROLE CHECK ---
-        const authHeader = event.headers?.authorization || '';
-        const token = authHeader.split(' ')[1];
-        
+        // --- 1. AUTHENTICATION (Synced with api.js logic) ---
+        const authHeader = event.headers.authorization || '';
+        const userKey = authHeader.replace('Bearer ', '').trim();
+        const lowKey = userKey.toLowerCase();
+
         let role = "";
-        if (token === process.env.KEY_PRESIDENT) role = "President";
-        else if (token === process.env.KEY_PRO) role = "PRO";
-        else if (token === process.env.KEY_SECRETARY) role = "Secretary";
-        else if (token === process.env.ADMIN_KEY) role = "System_Admin";
+        // Match these variables to your Netlify Env settings
+        if (userKey === process.env.MASTER_SECURITY_KEY) role = "President";
+        else if (lowKey.includes('pro')) role = "PRO";
+        else if (lowKey.includes('sec')) role = "Secretary";
+        else if (lowKey.includes('cash')) role = "Treasurer";
 
         if (!role) {
-            return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized Upload Access' }) };
+            return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized: Invalid Admin Key' }) };
         }
 
-        const { fileName, data } = JSON.parse(event.body || '{}');
-        // ... (S3 Setup and Upload Logic same as your original) ...
+        // --- 2. S3 CONFIGURATION ---
+        const s3Client = new S3Client({
+            region: process.env.MY_AWS_REGION,
+            credentials: {
+                accessKeyId: process.env.MY_AWS_ACCESS_KEY,
+                secretAccessKey: process.env.MY_AWS_SECRET_KEY,
+            },
+        });
 
-        await client.send(command);
-        const url = `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`;
+        const { fileName, data, contentType } = JSON.parse(event.body || '{}');
+        
+        // Remove the Base64 prefix (e.g., "data:image/jpeg;base64,")
+        const base64Content = data.includes(',') ? data.split(',')[1] : data;
+        const buffer = Buffer.from(base64Content, 'base64');
 
-        // --- LOGGING TO DATABASE ---
+        const fileKey = `napps-gallery/${Date.now()}-${fileName}`;
+        
+        const uploadParams = {
+            Bucket: process.env.MY_AWS_BUCKET_NAME,
+            Key: fileKey,
+            Body: buffer,
+            ContentType: contentType || 'image/jpeg'
+            // ACL: 'public-read' // Uncomment if your bucket requires explicit public access
+        };
+
+        // --- 3. EXECUTE UPLOAD ---
+        await s3Client.send(new PutObjectCommand(uploadParams));
+        const finalUrl = `https://${process.env.MY_AWS_BUCKET_NAME}.s3.${process.env.MY_AWS_REGION}.amazonaws.com/${fileKey}`;
+
+        // --- 4. LOG TO NEON DATABASE ---
         const sql = neon(process.env.DATABASE_URL);
-        await sql`INSERT INTO logs (actor, action, target_name, details) 
-                  VALUES (${role}, 'IMAGE_UPLOAD', ${fileName}, ${url})`;
+        await sql`INSERT INTO audit_logs (actor, action, target_name) 
+                  VALUES (${role}, 'S3_IMAGE_UPLOAD', ${fileName})`;
 
-        return { statusCode: 200, body: JSON.stringify({ success: true, url }) };
+        return { 
+            statusCode: 200, 
+            headers, 
+            body: JSON.stringify({ success: true, url: finalUrl }) 
+        };
+
     } catch (err) {
-        return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+        console.error("S3 Upload Error:", err);
+        return { 
+            statusCode: 500, 
+            headers, 
+            body: JSON.stringify({ error: 'Upload Failed', details: err.message }) 
+        };
     }
 };

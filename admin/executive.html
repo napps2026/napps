@@ -14,7 +14,7 @@
         .login-card { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 
         header { background: var(--napps-green); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; }
-        .role-tag { background: var(--gold); color: var(--napps-green); padding: 5px 12px; border-radius: 20px; font-weight: 800; font-size: 0.7rem; }
+        .role-tag { background: var(--gold); color: var(--napps-green); padding: 5px 12px; border-radius: 20px; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; }
         
         .container { padding: 30px; max-width: 1200px; margin: auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
@@ -26,12 +26,11 @@
 
         .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; transition: 0.2s; }
         .btn-verify { background: var(--napps-green); color: var(--gold); }
-        .btn-verify:hover { opacity: 0.9; }
+        .btn-delete { background: #fff1f1; color: var(--danger); margin-top: 8px; font-size: 0.8rem; }
         
-        /* PRO Upload Section */
-        .upload-section { background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 2px dashed var(--gold); }
-        .form-group { margin-bottom: 15px; }
-        input[type="text"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .tab-switcher { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { padding: 10px 20px; border-radius: 20px; border: 1px solid var(--napps-green); cursor: pointer; font-weight: 600; background: white; color: var(--napps-green); }
+        .tab-btn.active { background: var(--napps-green); color: white; }
 
         .hidden { display: none !important; }
         .loader { text-align: center; padding: 50px; font-weight: 600; color: var(--napps-green); }
@@ -42,7 +41,7 @@
     <div id="authOverlay">
         <div class="login-card">
             <h2 style="color: var(--napps-green); margin-bottom: 5px;">OFFICER LOGIN</h2>
-            <p style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">NAPPS OGUN SECURE TERMINAL</p>
+            <p style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">OGUN SECURE TERMINAL</p>
             <form onsubmit="handleLogin(event)">
                 <input type="password" id="execKey" placeholder="Enter Security Key" style="width:100%; padding:14px; margin-bottom:20px; border:2px solid #eee; border-radius:10px; box-sizing:border-box; text-align: center; font-size: 1.1rem;">
                 <button type="submit" class="btn" style="background:var(--gold); color: var(--napps-green);">UNLOCK TOOLS</button>
@@ -63,26 +62,14 @@
         </header>
 
         <div class="container">
-            <div id="proTools" class="hidden">
-                <div class="upload-section">
-                    <h3 style="margin-top: 0; color: var(--napps-green);"><i class="fas fa-camera"></i> Post to Public Gallery</h3>
-                    <div class="grid" style="grid-template-columns: 1fr 1fr; align-items: end;">
-                        <div class="form-group">
-                            <label style="font-size: 0.7rem; font-weight: 700;">EVENT TITLE</label>
-                            <input type="text" id="galTitle" placeholder="e.g. 2026 Sports Day">
-                        </div>
-                        <div class="form-group">
-                            <label style="font-size: 0.7rem; font-weight: 700;">IMAGE URL (S3/Cloudinary)</label>
-                            <input type="text" id="galUrl" placeholder="https://...">
-                        </div>
-                    </div>
-                    <button onclick="uploadGallery()" class="btn btn-verify" style="width: auto; padding: 12px 30px;">PUBLISH MOMENT</button>
-                </div>
+            <div id="adminControls" class="tab-switcher hidden">
+                <button class="tab-btn active" onclick="switchTab('schools', this)">School Requests</button>
+                <button class="tab-btn" onclick="switchTab('admin_teachers', this)">Teacher Profiles</button>
             </div>
 
-            <h2 id="welcomeText" style="color: var(--napps-green);">Pending Verifications</h2>
+            <h2 id="welcomeText" style="color: var(--napps-green);">Reviewing Queue</h2>
             <div id="dataGrid" class="grid">
-                <div class="loader">Initialising Registry...</div>
+                <div class="loader">Accessing Registry...</div>
             </div>
         </div>
     </div>
@@ -90,81 +77,104 @@
     <script>
         let USER_KEY = "";
         let USER_ROLE = "";
+        let CURRENT_TYPE = "schools";
 
         async function handleLogin(e) {
             if(e) e.preventDefault();
             USER_KEY = document.getElementById('execKey').value.trim();
             if(!USER_KEY) return alert("Key required");
 
-            // Role Detection
             const k = USER_KEY.toLowerCase();
             if(k.includes("pro")) USER_ROLE = "PRO";
             else if(k.includes("treasurer") || k.includes("cash")) USER_ROLE = "TREASURER";
-            else USER_ROLE = "SECRETARY";
+            else if(k.includes("sec")) USER_ROLE = "SECRETARY";
+            else USER_ROLE = "PRESIDENT";
 
-            // UI Switch
             document.getElementById('authOverlay').classList.add('hidden');
             document.getElementById('mainDashboard').classList.remove('hidden');
             document.getElementById('displayRole').innerText = USER_ROLE;
 
-            if(USER_ROLE === "PRO") {
-                document.getElementById('proTools').classList.remove('hidden');
+            // President and Secretary can switch between schools and teachers
+            if(USER_ROLE === "PRESIDENT" || USER_ROLE === "SECRETARY") {
+                document.getElementById('adminControls').classList.remove('hidden');
             }
+            
+            // PRO automatically looks at teachers
+            if(USER_ROLE === "PRO") CURRENT_TYPE = "admin_teachers";
 
+            fetchExecutiveData();
+        }
+
+        function switchTab(type, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            CURRENT_TYPE = type;
             fetchExecutiveData();
         }
 
         async function fetchExecutiveData() {
             const grid = document.getElementById('dataGrid');
-            const type = (USER_ROLE === "PRO") ? "teachers" : "schools";
+            grid.innerHTML = `<div class="loader">Refreshing ${CURRENT_TYPE}...</div>`;
             
             try {
-                const response = await fetch(`/.netlify/functions/api?type=${type}`, {
+                const response = await fetch(`/.netlify/functions/api?type=${CURRENT_TYPE}`, {
                     headers: { 'Authorization': `Bearer ${USER_KEY}` }
                 });
                 
                 if(!response.ok) throw new Error();
                 const data = await response.json();
                 
-                // Only show pending items for Executives
-                const pending = data.filter(item => item.status === 'pending');
-                renderCards(pending, type);
+                // Show pending for normal execs, all for President
+                const items = (USER_ROLE === "PRESIDENT") ? data : data.filter(item => item.status === 'pending');
+                renderCards(items, CURRENT_TYPE.replace('admin_', ''));
             } catch (err) {
-                grid.innerHTML = `<div class="loader" style="color:red;">Access Denied: Invalid Security Key</div>`;
+                grid.innerHTML = `<div class="loader" style="color:red;">Unauthorized Access</div>`;
             }
         }
 
         function renderCards(items, type) {
             const grid = document.getElementById('dataGrid');
             if(items.length === 0) {
-                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; background: white; border-radius: 15px;">
-                    <i class="fas fa-check-circle" style="font-size: 3rem; color: #2ecc71; margin-bottom: 15px;"></i>
-                    <h3>All Clear!</h3>
-                    <p>No pending ${type} verifications at the moment.</p>
-                </div>`;
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px;"><h3>Queue Empty</h3></div>`;
                 return;
             }
 
-            grid.innerHTML = items.map(item => `
+            grid.innerHTML = items.map(item => {
+                // Determine which image to show based on role
+                const img = (USER_ROLE === 'TREASURER') ? item.receipt_url : item.image_url;
+                const subText = item.location || item.qualification || item.email;
+                
+                return `
                 <div class="card">
-                    <div class="preview-box" onclick="window.open('${(USER_ROLE === 'TREASURER') ? item.receipt_url : item.image_url}')">
-                        <img src="${(USER_ROLE === 'TREASURER') ? item.receipt_url : item.image_url}" title="Click to enlarge">
+                    <div class="preview-box" onclick="window.open('${img}')">
+                        <img src="${img}" onerror="this.src='https://placehold.co/400x300?text=No+Preview'">
                     </div>
                     <div style="padding:20px;">
-                        <h4 style="margin: 0 0 5px 0; color: var(--napps-green);">${item.name}</h4>
+                        <span class="role-tag" style="background:#eee; margin-bottom:10px; display:inline-block">${item.status}</span>
+                        <h4 style="margin: 5px 0; color: var(--napps-green);">${item.name}</h4>
                         <p style="font-size:0.75rem; color: #666; margin-bottom: 15px;">
-                            <i class="fas fa-location-dot"></i> ${item.location || item.qualification}
+                            <i class="fas fa-info-circle"></i> ${subText}
                         </p>
-                        <button onclick="approve('${item.id}', '${type}')" class="btn btn-verify">
-                            <i class="fas fa-check"></i> VERIFY RECORD
-                        </button>
+                        
+                        ${item.status === 'pending' ? `
+                            <button onclick="updateStatus('${item.id}', '${type}', 'verify')" class="btn btn-verify">
+                                <i class="fas fa-check"></i> VERIFY
+                            </button>
+                        ` : ''}
+
+                        ${USER_ROLE === 'PRESIDENT' ? `
+                            <button onclick="updateStatus('${item.id}', '${type}', 'delete')" class="btn btn-delete">
+                                <i class="fas fa-trash"></i> DELETE PERMANENTLY
+                            </button>
+                        ` : ''}
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
-        async function approve(id, type) {
-            if(!confirm("Are you sure you want to officially verify this record?")) return;
+        async function updateStatus(id, type, action) {
+            const confirmMsg = action === 'verify' ? "Verify this record?" : "PERMANENTLY DELETE this record?";
+            if(!confirm(confirmMsg)) return;
             
             try {
                 const res = await fetch('/.netlify/functions/api', {
@@ -173,42 +183,17 @@
                         'Authorization': `Bearer ${USER_KEY}`,
                         'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify({ action: 'verify', type: type, id: id })
+                    body: JSON.stringify({ action: action, type: type, id: id })
                 });
                 
                 if(res.ok) {
-                    alert("Record Verified & Logged.");
+                    alert("Action Processed.");
                     fetchExecutiveData();
                 } else {
-                    alert("Verification failed. Check your permissions.");
+                    alert("Denied: Insufficient Privileges.");
                 }
             } catch (e) {
                 alert("Network error.");
-            }
-        }
-
-        async function uploadGallery() {
-            const title = document.getElementById('galTitle').value;
-            const url = document.getElementById('galUrl').value;
-            if(!title || !url) return alert("Fill all gallery fields");
-
-            const res = await fetch('/.netlify/functions/api', {
-                method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${USER_KEY}`,
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify({ 
-                    action: 'register', 
-                    type: 'gallery', 
-                    data: { title: title, url: url } 
-                })
-            });
-
-            if(res.ok) {
-                alert("Photo added to public gallery!");
-                document.getElementById('galTitle').value = "";
-                document.getElementById('galUrl').value = "";
             }
         }
     </script>

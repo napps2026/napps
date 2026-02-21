@@ -3,83 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gallery — NAPPS Ogun</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Photo Gallery | NAPPS Ogun</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Minimal page styles copied from index for consistency */
-        body{font-family:'Montserrat',sans-serif;background:var(--off-white,#f8f9fa);color:#1a1a1a;padding-bottom:70px}
-        header{position:fixed;top:0;width:100%;z-index:1000;background:rgba(255,255,255,0.92);backdrop-filter:blur(15px);padding:12px 5%;display:flex;justify-content:space-between;align-items:center}
-        .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
-        .brand img{height:45px}
-        .hero{padding:120px 20px 40px;text-align:center}
-        .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;max-width:1200px;margin:20px auto}
-        .gallery-item{background:white;border-radius:8px;overflow:hidden;border:1px solid #eee}
-        .gallery-item img{width:100%;height:180px;object-fit:cover}
-        .gallery-item .meta{padding:12px}
-        footer{background:#021a0f;color:rgba(255,255,255,0.6);padding:40px 5%;text-align:center;margin-top:40px}
+        :root { --napps-green: #004d2c; --gold: #d4af37; --bg: #ffffff; }
+        body { font-family: 'Montserrat', sans-serif; background: #f9f9f9; margin: 0; }
+        
+        header { background: var(--napps-green); color: white; padding: 60px 20px; text-align: center; }
+        header h1 { margin: 0; font-size: 2.5rem; }
+        header p { opacity: 0.9; margin-top: 10px; }
+
+        .gallery-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        
+        /* Masonry-style Grid */
+        .gallery-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 20px; 
+        }
+
+        .gallery-item { 
+            background: white; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08); 
+            cursor: pointer; 
+            transition: transform 0.3s ease;
+        }
+        .gallery-item:hover { transform: scale(1.02); }
+
+        .gallery-item img { 
+            width: 100%; 
+            height: 250px; 
+            object-fit: cover; 
+            display: block; 
+        }
+
+        .gallery-info { padding: 15px; border-top: 3px solid var(--gold); }
+        .gallery-info h3 { margin: 0; font-size: 1rem; color: var(--napps-green); }
+        .gallery-info span { font-size: 0.75rem; color: #888; }
+
+        /* Lightbox Overlay */
+        #lightbox {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            display: none; align-items: center; justify-content: center;
+            z-index: 3000; padding: 20px;
+        }
+        #lightbox img { max-width: 90%; max-height: 80vh; border: 3px solid white; border-radius: 5px; }
+        #lightbox .close { position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; cursor: pointer; }
+
+        .loader { text-align: center; padding: 50px; font-weight: 600; color: var(--napps-green); }
     </style>
 </head>
 <body>
-    <div class="fixed-nav" style="position:fixed;top:18px;left:18px;z-index:3000">
-        <a href="index.html" class="back-home" style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--primary,#051a13);color:var(--accent,#c5a028);border-radius:999px;text-decoration:none;font-weight:700">&larr; Home</a>
-    </div>
+
     <header>
-        <a href="index.html" class="brand">
-            <img src="https://via.placeholder.com/100x100/004d2c/d4af37?text=N" alt="NAPPS Logo">
-            <div>
-                <h1 style="font-family:'Cormorant Garamond';margin:0;color:#004d2c">NAPPS</h1>
-                <span style="font-size:0.6rem;color:#d4af37;letter-spacing:1px">OGUN STATE CHAPTER</span>
-            </div>
-        </a>
-        <nav style="display:flex;gap:18px;align-items:center">
-            <a href="index.html">Home</a>
-            <a href="gallery.html">Gallery</a>
-            <a href="unified-examination.html">Unified Exams</a>
-            <a href="teacher-reg.html">Teachers</a>
-            <a href="register.html" style="padding:8px 14px;background:#004d2c;color:white;border-radius:40px;text-decoration:none">JOIN NAPPS</a>
-        </nav>
+        <h1>NAPPS Ogun Gallery</h1>
+        <p>Capturing Excellence in Private Education</p>
     </header>
 
-    <main>
-        <section class="hero">
-            <h2 style="color:#d4af37;letter-spacing:4px;text-transform:uppercase">Gallery</h2>
-            <h1 style="font-family:'Cormorant Garamond'">Moments & Events</h1>
-            <p style="max-width:800px;margin:10px auto;color:#666">Browse photos from recent NAPPS events and member schools.</p>
-        </section>
+    <div class="gallery-container">
+        <div id="loader" class="loader"><i class="fas fa-circle-notch fa-spin"></i> Loading Moments...</div>
+        <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
 
-        <section style="max-width:1200px;margin:20px auto;padding:0 20px">
-            <div id="galleryGrid" class="gallery-grid">
-                <p style="text-align:center;width:100%">Loading gallery...</p>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div>
-            <h2 style="font-family:'Cormorant Garamond';margin:0">NAPPS OGUN</h2>
-            <p style="opacity:0.6">The National Association of Proprietors of Private Schools.</p>
-        </div>
-    </footer>
+    <div id="lightbox" onclick="this.style.display='none'">
+        <span class="close">&times;</span>
+        <img id="lightboxImg" src="">
+        <div id="lightboxCaption" style="color: white; position: absolute; bottom: 10%; font-weight: 600;"></div>
+    </div>
 
     <script>
-        async function loadGallery(){
-            try{
-                const res = await fetch('/.netlify/functions/gallery');
-                if(!res.ok) throw new Error('Failed to load');
-                const images = await res.json();
+        async function loadGallery() {
+            try {
+                // Fetches 'verified' gallery items from your api.js
+                const response = await fetch('/.netlify/functions/api?type=gallery');
+                const photos = await response.json();
+                
                 const grid = document.getElementById('galleryGrid');
-                if(!images || images.length===0){
-                    grid.innerHTML = '<p style="text-align:center;width:100%;color:#666">No images yet.</p>';
+                const loader = document.getElementById('loader');
+                
+                if (photos.length === 0) {
+                    loader.innerHTML = "No photos published yet.";
                     return;
                 }
-                grid.innerHTML = images.map(img => `\n                    <div class="gallery-item">\n                        <img src="${img.url || 'https://via.placeholder.com/400x180/004d2c/d4af37?text=Photo'}" alt="${img.title || ''}" onerror="this.src='https://via.placeholder.com/400x180/004d2c/d4af37?text=Photo'">\n                        <div class="meta">\n                            <strong>${img.title || ''}</strong>\n                            <p style="margin:6px 0 0;color:#666;font-size:0.9rem">${img.caption || ''}</p>\n                        </div>\n                    </div>\n                `).join('');
-            }catch(e){
-                console.error(e);
-                document.getElementById('galleryGrid').innerHTML = '<p style="text-align:center;width:100%;color:#d32f2f">Failed to load gallery.</p>';
+
+                grid.innerHTML = photos.map(photo => `
+                    <div class="gallery-item" onclick="openLightbox('${photo.url}', '${photo.title}')">
+                        <img src="${photo.url}" alt="${photo.title}" loading="lazy">
+                        <div class="gallery-info">
+                            <h3>${photo.title}</h3>
+                            <span><i class="far fa-calendar-alt"></i> ${new Date(photo.created_at).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+                loader.style.display = 'none';
+            } catch (err) {
+                document.getElementById('loader').innerHTML = "Error loading gallery.";
             }
         }
-        document.addEventListener('DOMContentLoaded', loadGallery);
+
+        function openLightbox(url, title) {
+            document.getElementById('lightboxImg').src = url;
+            document.getElementById('lightboxCaption').innerText = title;
+            document.getElementById('lightbox').style.display = 'flex';
+        }
+
+        loadGallery();
     </script>
 </body>
 </html>
