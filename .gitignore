@@ -1,19 +1,29 @@
-# Environment variables - NEVER commit these
+# =============================================
+# ATMOSPHERE DIGITAL × NAPPS OGUN - GITIGNORE
+# =============================================
+
+# Environment variables - CRITICAL SECURITY
 .env
 .env.local
 .env.*.local
 .env.production.local
+netlify.env
+
+# Database Backups & Blueprints
+# Keep your SQL schemas and local backups off the public server
+/backups/
+*.sql
 
 # Dependencies
+# These are re-installed on the server, no need to upload
 node_modules/
 package-lock.json
 yarn.lock
 
-# Netlify
+# Netlify Build Folders
 .netlify/
-netlify.env
 
-# IDE
+# IDE & Editor Configs
 .vscode/
 .idea/
 *.swp
@@ -22,20 +32,22 @@ netlify.env
 .DS_Store
 
 # Build outputs
+# These are generated automatically during deployment
 dist/
 build/
 out/
 
-# Logs
+# Logs & Debugging
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# OS
+# OS Specific Junk
 Thumbs.db
 .Thumbs.db
 
-# Local testing scripts (may contain secrets)
+# Local testing & Automation scripts
 scripts/local-*.js
 scripts/test-*.ps1
+update
