@@ -14,7 +14,7 @@
             --accent: #c5a028; 
             --bg: #fdfdfb;
             --white: #ffffff;
-            --error: #e74c3c;
+            --success: #27ae60;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,7 +31,7 @@
             position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 15px rgba(0,0,0,0.05);
         }
         .logo-area { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--primary); }
-        .logo-area img { height: 45px; }
+        .logo-area img { height: 45px; border-radius: 5px; }
 
         /* FORM CONTAINER */
         .reg-wrapper { max-width: 900px; margin: 40px auto; padding: 0 20px; }
@@ -64,12 +64,13 @@
         .upload-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .upload-box { 
             border: 2px dashed #ddd; padding: 30px; border-radius: 20px; text-align: center; 
-            cursor: pointer; transition: 0.3s; background: #fafafa;
+            cursor: pointer; transition: 0.3s; background: #fafafa; position: relative;
         }
         .upload-box:hover { border-color: var(--accent); background: #fffcf5; }
         .upload-box i { font-size: 1.8rem; color: var(--accent); margin-bottom: 10px; }
         .upload-box p { font-size: 0.7rem; font-weight: 600; color: #888; }
-        .file-selected { border-color: #27ae60 !important; background: #f1fcf4 !important; }
+        .file-selected { border-color: var(--success) !important; background: #f1fcf4 !important; }
+        .file-selected i { color: var(--success); }
 
         .submit-btn { 
             width: 100%; background: var(--primary); color: var(--accent); padding: 20px; 
@@ -77,6 +78,7 @@
             cursor: pointer; transition: 0.4s; letter-spacing: 1px; margin-top: 20px;
         }
         .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(5, 26, 19, 0.2); }
+        .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
 
         /* LOADING OVERLAY */
         #loader { 
@@ -94,7 +96,7 @@
 
     <nav>
         <a href="index.html" class="logo-area">
-            <img src="images/Nappslogo.jpeg" alt="Logo">
+            <img src="images/Nappslogo.jpeg" alt="NAPPS Logo">
             <h1 style="font-family: 'Cormorant Garamond'; font-size: 1.3rem;">NAPPS OGUN</h1>
         </a>
         <a href="index.html" style="text-decoration: none; color: var(--primary); font-size: 0.75rem; font-weight: 800;">EXIT PORTAL</a>
@@ -102,13 +104,13 @@
 
     <div id="loader">
         <div class="spinner"></div>
-        <p style="margin-top: 20px; font-weight: 800; color: var(--primary);">TRANSMITTING SECURE DATA...</p>
+        <p id="loaderText" style="margin-top: 20px; font-weight: 800; color: var(--primary);">TRANSMITTING SECURE DATA...</p>
     </div>
 
     <div class="reg-wrapper">
         <div class="reg-card">
             <div class="header-meta">
-                <p>2026 Academic Session</p>
+                <p>Official 2026 Academic Session</p>
                 <h2>Institutional Registry</h2>
             </div>
 
@@ -124,31 +126,21 @@
                             <label>LGA (Location)</label>
                             <select id="schLga" required>
                                 <option value="">-- Select Local Government --</option>
-                                <option>Abeokuta North</option>
-                                <option>Abeokuta South</option>
-                                <option>Ado-Odo/Ota</option>
-                                <option>Egbado North (Yewa North)</option>
-                                <option>Egbado South (Yewa South)</option>
-                                <option>Ewekoro</option>
-                                <option>Ifo</option>
-                                <option>Ijebu East</option>
-                                <option>Ijebu North</option>
-                                <option>Ijebu North East</option>
-                                <option>Ijebu Ode</option>
-                                <option>Ikenne</option>
-                                <option>Imeko Afon</option>
-                                <option>Ipokia</option>
-                                <option>Obafemi Owode</option>
-                                <option>Odeda</option>
-                                <option>Odogbolu</option>
-                                <option>Ogun Waterside</option>
-                                <option>Remo North</option>
-                                <option>Shagamu</option>
+                                <option>Abeokuta North</option><option>Abeokuta South</option>
+                                <option>Ado-Odo/Ota</option><option>Egbado North</option>
+                                <option>Egbado South</option><option>Ewekoro</option>
+                                <option>Ifo</option><option>Ijebu East</option>
+                                <option>Ijebu North</option><option>Ijebu North East</option>
+                                <option>Ijebu Ode</option><option>Ikenne</option>
+                                <option>Imeko Afon</option><option>Ipokia</option>
+                                <option>Obafemi Owode</option><option>Odeda</option>
+                                <option>Odogbolu</option><option>Ogun Waterside</option>
+                                <option>Remo North</option><option>Shagamu</option>
                             </select>
                         </div>
                         <div class="field">
                             <label>Proprietor's Full Name</label>
-                            <input type="text" id="schOwner" placeholder="Dr./Chief/Mr/Mrs Name" required>
+                            <input type="text" id="schOwner" placeholder="Proprietor Name" required>
                         </div>
                     </div>
                 </div>
@@ -167,51 +159,64 @@
                             <input type="file" id="fileReceipt" hidden accept="image/*" required onchange="handleFile(this, 'labelReceipt', 'receiptBox')">
                         </div>
                     </div>
-                    <p style="font-size: 0.65rem; color: #999; margin-top: 15px; text-align: center;">Note: Receipt must show payment to the Official NAPPS Ogun Bank Account.</p>
+                    <p style="font-size: 0.65rem; color: #999; margin-top: 15px; text-align: center;">Maximum file size: 2MB. Format: JPG, PNG.</p>
                 </div>
 
-                <button type="submit" class="submit-btn">SEND TO SECRETARIAT <i class="fas fa-paper-plane" style="margin-left: 10px;"></i></button>
+                <button type="submit" id="submitBtn" class="submit-btn">SEND TO SECRETARIAT <i class="fas fa-paper-plane" style="margin-left: 10px;"></i></button>
             </form>
         </div>
     </div>
 
     <script>
-        // Visual feedback for file selection
+        // File handler to show visual feedback
         function handleFile(input, labelId, boxId) {
             if (input.files && input.files[0]) {
-                const name = input.files[0].name;
-                document.getElementById(labelId).innerText = name.substring(0, 20) + "...";
+                const file = input.files[0];
+                if (file.size > 2 * 1024 * 1024) {
+                    alert("File too large! Please upload a file smaller than 2MB.");
+                    input.value = "";
+                    return;
+                }
+                document.getElementById(labelId).innerText = file.name;
                 document.getElementById(boxId).classList.add('file-selected');
             }
         }
 
-        // Form Submission logic
+        // Helper: Convert File to Base64 (clean string)
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]); // Remove metadata prefix
+            reader.onerror = error => reject(error);
+        });
+
+        // Form Logic
         document.getElementById('nappsRegForm').onsubmit = async (e) => {
             e.preventDefault();
-            document.getElementById('loader').style.display = 'flex';
-
-            const toBase64 = file => new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-            });
+            
+            const btn = document.getElementById('submitBtn');
+            const loader = document.getElementById('loader');
+            const loaderText = document.getElementById('loaderText');
 
             try {
-                const logo = document.getElementById('fileLogo').files[0];
-                const receipt = document.getElementById('fileReceipt').files[0];
+                btn.disabled = true;
+                loader.style.display = 'flex';
+                loaderText.innerText = "ENCRYPTING DOCUMENTS...";
+
+                const logoFile = document.getElementById('fileLogo').files[0];
+                const receiptFile = document.getElementById('fileReceipt').files[0];
+
+                loaderText.innerText = "UPLOADING TO REGISTRY...";
 
                 const payload = {
                     type: 'register',
                     name: document.getElementById('schName').value,
                     lga: document.getElementById('schLga').value,
                     owner: document.getElementById('schOwner').value,
-                    logoData: await toBase64(logo),
-                    receiptData: await toBase64(receipt),
-                    timestamp: new Date().toISOString()
+                    logoData: await toBase64(logoFile),
+                    receiptData: await toBase64(receiptFile)
                 };
 
-                // SEND TO BACKEND (Your Netlify Function)
                 const response = await fetch('/.netlify/functions/api', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -221,17 +226,20 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert('SUCCESS! Application Received.\nReference ID: ' + result.regId + '\nPlease save this ID for status tracking.');
-                    window.location.href = 'index.html';
+                    loader.innerHTML = `
+                        <i class="fas fa-check-circle" style="font-size: 4rem; color: #27ae60;"></i>
+                        <h2 style="margin-top:20px;">Registration Successful!</h2>
+                        <p>ID: ${result.regId}</p>
+                        <button onclick="window.location.href='index.html'" class="submit-btn" style="width:200px; margin-top:20px;">RETURN HOME</button>
+                    `;
                 } else {
-                    throw new Error(result.error || 'Submission failed');
+                    throw new Error(result.error || "Portal rejected the data.");
                 }
 
             } catch (err) {
-                alert('CRITICAL ERROR: ' + err.message);
-                console.error(err);
-            } finally {
-                document.getElementById('loader').style.display = 'none';
+                alert('REGISTRATION FAILED: ' + err.message);
+                loader.style.display = 'none';
+                btn.disabled = false;
             }
         };
     </script>
