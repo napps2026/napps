@@ -19,17 +19,18 @@
         .container { padding: 30px; max-width: 1200px; margin: auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
         
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #eee; transition: 0.3s; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #eee; transition: 0.3s; display: flex; flex-direction: column; }
         .card:hover { transform: translateY(-5px); }
-        .preview-box { width: 100%; height: 200px; background: #222; overflow: hidden; cursor: zoom-in; }
+        .preview-box { width: 100%; height: 200px; background: #222; overflow: hidden; cursor: zoom-in; position: relative; }
         .preview-box img { width: 100%; height: 100%; object-fit: contain; }
+        .img-label { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.6); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; }
 
         .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 100%; transition: 0.2s; }
         .btn-verify { background: var(--napps-green); color: var(--gold); }
         .btn-delete { background: #fff1f1; color: var(--danger); margin-top: 8px; font-size: 0.8rem; }
         
-        .tab-switcher { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { padding: 10px 20px; border-radius: 20px; border: 1px solid var(--napps-green); cursor: pointer; font-weight: 600; background: white; color: var(--napps-green); }
+        .tab-switcher { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { padding: 10px 20px; border-radius: 20px; border: 1px solid var(--napps-green); cursor: pointer; font-weight: 600; background: white; color: var(--napps-green); white-space: nowrap; }
         .tab-btn.active { background: var(--napps-green); color: white; }
 
         .hidden { display: none !important; }
@@ -43,7 +44,7 @@
             <h2 style="color: var(--napps-green); margin-bottom: 5px;">OFFICER LOGIN</h2>
             <p style="font-size: 0.8rem; color: #666; margin-bottom: 20px;">OGUN SECURE TERMINAL</p>
             <form onsubmit="handleLogin(event)">
-                <input type="password" id="execKey" placeholder="Enter Security Key" style="width:100%; padding:14px; margin-bottom:20px; border:2px solid #eee; border-radius:10px; box-sizing:border-box; text-align: center; font-size: 1.1rem;">
+                <input type="password" id="execKey" placeholder="Enter Security Key" required style="width:100%; padding:14px; margin-bottom:20px; border:2px solid #eee; border-radius:10px; box-sizing:border-box; text-align: center; font-size: 1.1rem;">
                 <button type="submit" class="btn" style="background:var(--gold); color: var(--napps-green);">UNLOCK TOOLS</button>
             </form>
         </div>
@@ -63,7 +64,7 @@
 
         <div class="container">
             <div id="adminControls" class="tab-switcher hidden">
-                <button class="tab-btn active" onclick="switchTab('schools', this)">School Requests</button>
+                <button class="tab-btn active" onclick="switchTab('all_schools', this)">School Requests</button>
                 <button class="tab-btn" onclick="switchTab('admin_teachers', this)">Teacher Profiles</button>
             </div>
 
@@ -77,12 +78,12 @@
     <script>
         let USER_KEY = "";
         let USER_ROLE = "";
-        let CURRENT_TYPE = "schools";
+        let CURRENT_TYPE = "all_schools";
 
         async function handleLogin(e) {
             if(e) e.preventDefault();
             USER_KEY = document.getElementById('execKey').value.trim();
-            if(!USER_KEY) return alert("Key required");
+            if(!USER_KEY) return;
 
             const k = USER_KEY.toLowerCase();
             if(k.includes("pro")) USER_ROLE = "PRO";
@@ -94,14 +95,13 @@
             document.getElementById('mainDashboard').classList.remove('hidden');
             document.getElementById('displayRole').innerText = USER_ROLE;
 
-            // President and Secretary can switch between schools and teachers
+            // Privilege-based navigation
             if(USER_ROLE === "PRESIDENT" || USER_ROLE === "SECRETARY") {
                 document.getElementById('adminControls').classList.remove('hidden');
             }
             
-            // PRO automatically looks at teachers
             if(USER_ROLE === "PRO") CURRENT_TYPE = "admin_teachers";
-
+            
             fetchExecutiveData();
         }
 
@@ -114,57 +114,60 @@
 
         async function fetchExecutiveData() {
             const grid = document.getElementById('dataGrid');
-            grid.innerHTML = `<div class="loader">Refreshing ${CURRENT_TYPE}...</div>`;
+            grid.innerHTML = `<div class="loader"><i class="fas fa-spinner fa-spin"></i> Loading ${CURRENT_TYPE.replace('all_','').replace('admin_','')}...</div>`;
             
             try {
                 const response = await fetch(`/.netlify/functions/api?type=${CURRENT_TYPE}`, {
                     headers: { 'Authorization': `Bearer ${USER_KEY}` }
                 });
                 
-                if(!response.ok) throw new Error();
+                if(!response.ok) throw new Error("Unauthorized");
                 const data = await response.json();
                 
-                // Show pending for normal execs, all for President
+                // PRESIDENT sees all history, others see only 'pending'
                 const items = (USER_ROLE === "PRESIDENT") ? data : data.filter(item => item.status === 'pending');
-                renderCards(items, CURRENT_TYPE.replace('admin_', ''));
+                renderCards(items, CURRENT_TYPE);
             } catch (err) {
-                grid.innerHTML = `<div class="loader" style="color:red;">Unauthorized Access</div>`;
+                grid.innerHTML = `<div class="loader" style="color:red;">Access Denied. Please check your Security Key.</div>`;
             }
         }
 
         function renderCards(items, type) {
             const grid = document.getElementById('dataGrid');
-            if(items.length === 0) {
-                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px;"><h3>Queue Empty</h3></div>`;
+            if(!items || items.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px;"><h3>No Pending items in this section</h3></div>`;
                 return;
             }
 
             grid.innerHTML = items.map(item => {
-                // Determine which image to show based on role
-                const img = (USER_ROLE === 'TREASURER') ? item.receipt_url : item.image_url;
-                const subText = item.location || item.qualification || item.email;
+                // Determine logic: Treasurers need to see the RECEIPT primarily
+                const isTreasurer = USER_ROLE === 'TREASURER';
+                const mainImg = (isTreasurer && item.receipt_url) ? item.receipt_url : (item.image_url || item.receipt_url);
+                const label = (isTreasurer && item.receipt_url) ? "PAYMENT PROOF" : "LOGO/PHOTO";
                 
                 return `
                 <div class="card">
-                    <div class="preview-box" onclick="window.open('${img}')">
-                        <img src="${img}" onerror="this.src='https://placehold.co/400x300?text=No+Preview'">
+                    <div class="preview-box" onclick="window.open('${mainImg}')">
+                        <img src="${mainImg}" onerror="this.src='https://placehold.co/400x300?text=No+Image+Provided'">
+                        <span class="img-label">${label}</span>
                     </div>
-                    <div style="padding:20px;">
-                        <span class="role-tag" style="background:#eee; margin-bottom:10px; display:inline-block">${item.status}</span>
+                    <div style="padding:20px; flex-grow: 1;">
+                        <span class="role-tag" style="background:#f0f0f0; color:#555; margin-bottom:10px; display:inline-block">${item.status}</span>
                         <h4 style="margin: 5px 0; color: var(--napps-green);">${item.name}</h4>
                         <p style="font-size:0.75rem; color: #666; margin-bottom: 15px;">
-                            <i class="fas fa-info-circle"></i> ${subText}
+                            <i class="fas fa-info-circle"></i> ${item.location || item.qualification || item.email || 'N/A'}
                         </p>
-                        
+                    </div>
+                    <div style="padding: 0 20px 20px 20px;">
                         ${item.status === 'pending' ? `
                             <button onclick="updateStatus('${item.id}', '${type}', 'verify')" class="btn btn-verify">
-                                <i class="fas fa-check"></i> VERIFY
+                                <i class="fas fa-check-circle"></i> VERIFY & APPROVE
                             </button>
-                        ` : ''}
+                        ` : '<div style="color:var(--napps-green); font-weight:700; text-align:center;"><i class="fas fa-check"></i> VERIFIED</div>'}
 
                         ${USER_ROLE === 'PRESIDENT' ? `
                             <button onclick="updateStatus('${item.id}', '${type}', 'delete')" class="btn btn-delete">
-                                <i class="fas fa-trash"></i> DELETE PERMANENTLY
+                                <i class="fas fa-trash-alt"></i> PERMANENT DELETE
                             </button>
                         ` : ''}
                     </div>
@@ -173,9 +176,11 @@
         }
 
         async function updateStatus(id, type, action) {
-            const confirmMsg = action === 'verify' ? "Verify this record?" : "PERMANENTLY DELETE this record?";
-            if(!confirm(confirmMsg)) return;
+            if(!confirm(`Are you sure you want to ${action} this record?`)) return;
             
+            // CLEAN THE TYPE for the API Security Guard
+            const cleanType = type.replace('admin_', '').replace('all_', '');
+
             try {
                 const res = await fetch('/.netlify/functions/api', {
                     method: 'POST',
@@ -183,17 +188,19 @@
                         'Authorization': `Bearer ${USER_KEY}`,
                         'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify({ action: action, type: type, id: id })
+                    body: JSON.stringify({ action: action, type: cleanType, id: id })
                 });
                 
+                const result = await res.json();
+
                 if(res.ok) {
-                    alert("Action Processed.");
+                    alert("Update Successful!");
                     fetchExecutiveData();
                 } else {
-                    alert("Denied: Insufficient Privileges.");
+                    alert("Denied: " + (result.error || "Insufficient Permissions"));
                 }
             } catch (e) {
-                alert("Network error.");
+                alert("Connection error. Check your network.");
             }
         }
     </script>
